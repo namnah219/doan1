@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Super Arena | Đặt vé sân vận động 3D - Đỉnh cao công nghệ</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vanilla-tilt@1.7.0/dist/vanilla-tilt.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Montserrat:wght@200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -19,10 +21,11 @@
             font-family: 'Montserrat', sans-serif;
             color: #fff;
             min-height: 100vh;
+            overflow-x: hidden;
             position: relative;
         }
 
-        /* Animated background */
+        /* Animated gradient overlay */
         body::before {
             content: '';
             position: fixed;
@@ -30,46 +33,60 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: 
-                radial-gradient(circle at 20% 30%, rgba(0, 242, 255, 0.08) 0%, transparent 50%),
-                radial-gradient(circle at 80% 70%, rgba(255, 207, 0, 0.06) 0%, transparent 50%);
+            background: radial-gradient(circle at 50% 50%, rgba(0, 242, 255, 0.03), transparent 70%);
             pointer-events: none;
-            z-index: -1;
+            z-index: 1;
+            animation: breathe 8s ease-in-out infinite;
         }
 
-        /* Floating particles */
-        .particles {
+        @keyframes breathe {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 0.8; }
+        }
+
+        /* Canvas 3D nền */
+        #canvas3d {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
+            z-index: 0;
             pointer-events: none;
-            z-index: -1;
-            overflow: hidden;
         }
 
-        .particle {
-            position: absolute;
-            background: rgba(0, 242, 255, 0.3);
-            border-radius: 50%;
-            animation: float 8s infinite ease-in-out;
+        /* Nội dung nằm trên canvas */
+        .header, .hero, .events, .features, footer, .modal {
+            position: relative;
+            z-index: 10;
         }
 
-        @keyframes float {
-            0%, 100% { transform: translateY(0) translateX(0); opacity: 0.3; }
-            50% { transform: translateY(-50px) translateX(30px); opacity: 0.8; }
+        html {
+            scroll-behavior: smooth;
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0a0a1a;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #00f2ff, #ffcf00);
+            border-radius: 10px;
         }
 
         /* ========== HEADER ========== */
         .header {
-            background: rgba(0, 0, 0, 0.5);
-            backdrop-filter: blur(25px);
-            padding: 18px 60px;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(20px);
+            padding: 15px 60px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 1px solid rgba(0, 242, 255, 0.25);
+            border-bottom: 1px solid rgba(0, 242, 255, 0.2);
             position: sticky;
             top: 0;
             z-index: 100;
@@ -82,12 +99,12 @@
             font-family: 'Orbitron';
             font-size: 1.8rem;
             font-weight: 900;
-            background: linear-gradient(135deg, #ffffff, #00f2ff, #ffcf00, #ff00ff);
-            background-size: 300% 300%;
+            background: linear-gradient(135deg, #ffffff, #00f2ff, #ffcf00);
+            background-size: 200% 200%;
             -webkit-background-clip: text;
             background-clip: text;
             color: transparent;
-            animation: gradientShift 5s ease infinite;
+            animation: gradientShift 6s ease infinite;
             letter-spacing: 2px;
         }
 
@@ -136,10 +153,10 @@
             display: flex;
             align-items: center;
             gap: 15px;
-            background: linear-gradient(135deg, rgba(0, 242, 255, 0.2), rgba(255, 207, 0, 0.1));
+            background: rgba(0, 242, 255, 0.1);
             padding: 8px 22px;
             border-radius: 60px;
-            border: 1px solid rgba(0, 242, 255, 0.4);
+            border: 1px solid rgba(0, 242, 255, 0.3);
             backdrop-filter: blur(10px);
         }
 
@@ -164,8 +181,7 @@
         }
 
         .logout-btn:hover {
-            background: rgba(255, 85, 85, 0.25);
-            transform: scale(1.02);
+            background: rgba(255, 85, 85, 0.2);
         }
 
         .login-btn, .register-btn {
@@ -181,8 +197,8 @@
         }
 
         .login-btn:hover, .register-btn:hover {
-            transform: scale(1.03);
-            box-shadow: 0 0 20px rgba(0, 201, 255, 0.6);
+            transform: scale(1.02);
+            box-shadow: 0 0 15px rgba(0, 201, 255, 0.4);
         }
 
         /* ========== HERO ========== */
@@ -194,36 +210,22 @@
 
         .hero h1 {
             font-family: 'Orbitron';
-            font-size: 3.8rem;
-            background: linear-gradient(135deg, #fff, #00f2ff, #ffcf00, #ff00ff);
-            background-size: 300% 300%;
+            font-size: 3.5rem;
+            background: linear-gradient(135deg, #fff, #00f2ff, #ffcf00);
+            background-size: 200% 200%;
             -webkit-background-clip: text;
             background-clip: text;
             color: transparent;
             margin-bottom: 20px;
-            animation: gradientShift 5s ease infinite;
+            animation: gradientShift 6s ease infinite;
         }
 
         .hero p {
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             color: #ccc;
             max-width: 700px;
             margin: 0 auto;
             line-height: 1.6;
-        }
-
-        /* Glow button */
-        .hero-glow {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 300px;
-            height: 300px;
-            background: radial-gradient(circle, rgba(0, 242, 255, 0.15), transparent);
-            border-radius: 50%;
-            transform: translate(-50%, -50%);
-            filter: blur(60px);
-            pointer-events: none;
         }
 
         /* ========== SEARCH ========== */
@@ -244,7 +246,7 @@
             flex: 1;
             min-width: 280px;
             padding: 16px 26px;
-            background: rgba(255, 255, 255, 0.06);
+            background: rgba(255, 255, 255, 0.05);
             border: 1px solid rgba(0, 242, 255, 0.3);
             border-radius: 60px;
             color: white;
@@ -256,8 +258,8 @@
         .search-box input:focus {
             outline: none;
             border-color: #ffcf00;
-            background: rgba(255, 255, 255, 0.1);
-            box-shadow: 0 0 20px rgba(255, 207, 0, 0.2);
+            background: rgba(255, 255, 255, 0.08);
+            box-shadow: 0 0 15px rgba(255, 207, 0, 0.15);
         }
 
         .search-box button {
@@ -277,23 +279,22 @@
         }
 
         .search-box button:hover {
-            transform: scale(1.03);
-            box-shadow: 0 0 25px rgba(0, 201, 255, 0.5);
+            transform: scale(1.02);
+            box-shadow: 0 0 15px rgba(0, 201, 255, 0.4);
         }
 
         .result-card {
             margin-top: 30px;
-            background: rgba(0, 0, 0, 0.6);
+            background: rgba(0, 0, 0, 0.5);
             backdrop-filter: blur(15px);
             border-radius: 28px;
             padding: 25px;
-            border: 1px solid rgba(0, 242, 255, 0.35);
+            border: 1px solid rgba(0, 242, 255, 0.3);
             transition: all 0.3s;
         }
 
         .result-card:hover {
             border-color: #ffcf00;
-            box-shadow: 0 0 30px rgba(255, 207, 0, 0.1);
         }
 
         /* ========== SỰ KIỆN ========== */
@@ -304,10 +305,9 @@
 
         .events h2 {
             font-family: 'Orbitron';
-            font-size: 2.5rem;
+            font-size: 2.3rem;
             color: #00f2ff;
             margin-bottom: 15px;
-            text-shadow: 0 0 20px rgba(0, 242, 255, 0.3);
         }
 
         .events-sub {
@@ -324,41 +324,26 @@
         }
 
         .card {
-            background: linear-gradient(135deg, rgba(0, 0, 0, 0.5), rgba(0, 242, 255, 0.08));
-            border-radius: 36px;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(10px);
+            border-radius: 32px;
             padding: 40px 30px;
             width: 300px;
             border: 1px solid rgba(0, 242, 255, 0.3);
-            transition: all 0.4s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+            transition: all 0.4s ease;
             cursor: pointer;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(0, 242, 255, 0.1), transparent);
-            transition: left 0.6s;
-        }
-
-        .card:hover::before {
-            left: 100%;
+            transform-style: preserve-3d;
         }
 
         .card:hover {
-            transform: translateY(-15px);
+            transform: translateY(-12px);
             border-color: #ffcf00;
-            box-shadow: 0 30px 50px rgba(0, 0, 0, 0.4);
+            box-shadow: 0 25px 45px rgba(0, 0, 0, 0.4);
         }
 
         .card h3 {
             font-family: 'Orbitron';
-            font-size: 1.5rem;
+            font-size: 1.4rem;
             color: #ffcf00;
             margin-bottom: 18px;
         }
@@ -366,7 +351,7 @@
         .card p {
             margin: 12px 0;
             color: #ddd;
-            font-size: 0.95rem;
+            font-size: 0.9rem;
         }
 
         .card button {
@@ -384,23 +369,21 @@
 
         .card button:hover {
             transform: scale(1.02);
-            box-shadow: 0 0 18px rgba(0, 201, 255, 0.5);
         }
 
         /* ========== TÍNH NĂNG ========== */
         .features {
             padding: 80px 20px;
             text-align: center;
-            background: rgba(0, 0, 0, 0.3);
+            background: rgba(0, 0, 0, 0.2);
             backdrop-filter: blur(10px);
         }
 
         .features h2 {
             font-family: 'Orbitron';
-            font-size: 2.3rem;
+            font-size: 2.2rem;
             color: #ffcf00;
             margin-bottom: 60px;
-            text-shadow: 0 0 15px rgba(255, 207, 0, 0.2);
         }
 
         .feature-list {
@@ -413,7 +396,7 @@
         .feature {
             background: rgba(255, 255, 255, 0.03);
             padding: 35px 25px;
-            border-radius: 32px;
+            border-radius: 28px;
             width: 240px;
             transition: all 0.3s;
             border: 1px solid rgba(255, 255, 255, 0.05);
@@ -421,20 +404,19 @@
 
         .feature:hover {
             transform: translateY(-8px);
-            background: rgba(255, 255, 255, 0.08);
-            border-color: rgba(0, 242, 255, 0.4);
+            background: rgba(255, 255, 255, 0.06);
+            border-color: rgba(0, 242, 255, 0.3);
         }
 
         .feature i {
-            font-size: 3rem;
+            font-size: 2.8rem;
             color: #00f2ff;
             margin-bottom: 20px;
             transition: 0.3s;
         }
 
         .feature:hover i {
-            transform: scale(1.1);
-            text-shadow: 0 0 20px #00f2ff;
+            transform: scale(1.05);
         }
 
         .feature h3 {
@@ -455,8 +437,8 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.97);
-            backdrop-filter: blur(30px);
+            background: rgba(0, 0, 0, 0.95);
+            backdrop-filter: blur(25px);
             z-index: 1000;
             justify-content: center;
             align-items: center;
@@ -469,22 +451,21 @@
 
         @keyframes fadeIn {
             from { opacity: 0; backdrop-filter: blur(0); }
-            to { opacity: 1; backdrop-filter: blur(30px); }
+            to { opacity: 1; backdrop-filter: blur(25px); }
         }
 
         .modal-content {
             background: linear-gradient(135deg, #1a1a2e, #0a0a1a);
-            border-radius: 48px;
-            padding: 50px;
+            border-radius: 40px;
+            padding: 45px;
             width: 500px;
             max-width: 90%;
-            border: 2px solid #00f2ff;
-            box-shadow: 0 0 80px rgba(0, 242, 255, 0.4);
-            animation: modalPop 0.4s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+            border: 1px solid rgba(0, 242, 255, 0.4);
+            animation: modalPop 0.3s ease;
         }
 
         @keyframes modalPop {
-            from { transform: scale(0.9); opacity: 0; }
+            from { transform: scale(0.95); opacity: 0; }
             to { transform: scale(1); opacity: 1; }
         }
 
@@ -492,17 +473,17 @@
             font-family: 'Orbitron';
             color: #00f2ff;
             text-align: center;
-            margin-bottom: 35px;
-            font-size: 1.8rem;
+            margin-bottom: 30px;
+            font-size: 1.6rem;
         }
 
         .modal-content input {
             width: 100%;
-            padding: 16px;
+            padding: 15px;
             margin: 12px 0;
             background: rgba(255, 255, 255, 0.08);
             border: 1px solid rgba(0, 242, 255, 0.4);
-            border-radius: 20px;
+            border-radius: 16px;
             color: white;
             font-size: 1rem;
             transition: 0.3s;
@@ -539,7 +520,7 @@
         }
 
         .strength-bar {
-            height: 6px;
+            height: 5px;
             background: #333;
             border-radius: 5px;
             overflow: hidden;
@@ -579,14 +560,14 @@
         .modal-buttons {
             display: flex;
             gap: 18px;
-            margin-top: 35px;
+            margin-top: 30px;
         }
 
         .modal-buttons button {
             flex: 1;
-            padding: 15px;
+            padding: 14px;
             border: none;
-            border-radius: 60px;
+            border-radius: 50px;
             cursor: pointer;
             font-weight: bold;
             transition: 0.3s;
@@ -609,7 +590,7 @@
 
         .switch-modal {
             text-align: center;
-            margin-top: 28px;
+            margin-top: 25px;
             font-size: 0.85rem;
         }
 
@@ -622,7 +603,7 @@
         footer {
             text-align: center;
             padding: 40px;
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             color: #666;
             border-top: 1px solid rgba(255, 255, 255, 0.05);
         }
@@ -633,12 +614,12 @@
             right: 30px;
             background: linear-gradient(90deg, #00f2ff, #0088aa);
             color: #000;
-            padding: 14px 32px;
+            padding: 12px 28px;
             border-radius: 60px;
             font-weight: bold;
             z-index: 200;
             animation: slideIn 0.4s ease;
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
             font-family: 'Orbitron';
             font-size: 0.85rem;
         }
@@ -648,11 +629,23 @@
             to { opacity: 1; transform: translateX(0); }
         }
 
+        .login-error {
+            background: rgba(255, 85, 85, 0.15);
+            border: 1px solid #ff5555;
+            border-radius: 12px;
+            padding: 10px;
+            margin: 10px 0;
+            color: #ff5555;
+            font-size: 0.8rem;
+            text-align: center;
+            display: none;
+        }
+
         @media (max-width: 768px) {
             .header { padding: 15px 25px; justify-content: center; text-align: center; }
             .hero h1 { font-size: 2rem; }
             .hero { padding: 60px 20px; }
-            .modal-content { padding: 35px; }
+            .modal-content { padding: 30px; }
             .card { width: 260px; padding: 30px 20px; }
             .feature { width: 200px; }
         }
@@ -660,8 +653,8 @@
 </head>
 <body>
 
-<!-- Floating particles -->
-<div class="particles" id="particles"></div>
+<!-- Canvas 3D nền -->
+<canvas id="canvas3d"></canvas>
 
 <div class="header">
     <div class="logo">⚡ SUPER ARENA</div>
@@ -681,7 +674,6 @@
 </div>
 
 <section class="hero">
-    <div class="hero-glow"></div>
     <h1>🎫 Hệ thống đặt vé thông minh</h1>
     <p>Đặt vé nhanh chóng – tiện lợi – chính xác | Công nghệ Mutex - Đồng bộ thời gian thực</p>
 
@@ -699,19 +691,19 @@
     <h2>🎤 SỰ KIỆN NỔI BẬT</h2>
     <p class="events-sub">Trải nghiệm âm nhạc đỉnh cao cùng những nghệ sĩ hàng đầu</p>
     <div class="event-list">
-        <div class="card" onclick="goToStadium('SonTung')">
+        <div class="card" data-tilt data-tilt-max="8" data-tilt-glare="true" data-tilt-scale="1.02" onclick="goToStadium('SonTung')">
             <h3>🎤 Concert Sơn Tùng MTP</h3>
             <p>📅 20/04/2026 | 20:00</p>
             <p>📍 SVĐ Quốc Gia</p>
             <button>🎟️ Đặt vé ngay</button>
         </div>
-        <div class="card" onclick="goToStadium('RapViet')">
+        <div class="card" data-tilt data-tilt-max="8" data-tilt-glare="true" data-tilt-scale="1.02" onclick="goToStadium('RapViet')">
             <h3>🎧 Rap Việt - Chung kết</h3>
             <p>📅 25/04/2026 | 19:30</p>
             <p>📍 SVĐ Hàng Đẫy</p>
             <button>🎟️ Đặt vé ngay</button>
         </div>
-        <div class="card" onclick="goToStadium('EDM')">
+        <div class="card" data-tilt data-tilt-max="8" data-tilt-glare="true" data-tilt-scale="1.02" onclick="goToStadium('EDM')">
             <h3>🎵 EDM Festival 2026</h3>
             <p>📅 30/04/2026 | 18:00</p>
             <p>📍 SVĐ Mỹ Đình</p>
@@ -739,6 +731,7 @@
 <div id="loginModal" class="modal">
     <div class="modal-content">
         <h2>🔐 ĐĂNG NHẬP</h2>
+        <div id="loginError" class="login-error"></div>
         <input type="text" id="loginUsername" placeholder="Tên đăng nhập">
         <input type="password" id="loginPassword" placeholder="Mật khẩu">
         <div class="remember-row">
@@ -781,31 +774,85 @@
 </div>
 
 <script>
+    // ========== THREE.JS 3D BACKGROUND ==========
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('canvas3d'), alpha: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(window.devicePixelRatio);
+    
+    // Tạo các hạt sáng (particles)
+    const particlesGeometry = new THREE.BufferGeometry();
+    const particlesCount = 1500;
+    const posArray = new Float32Array(particlesCount * 3);
+    const colorArray = new Float32Array(particlesCount * 3);
+    
+    for(let i = 0; i < particlesCount; i++) {
+        posArray[i*3] = (Math.random() - 0.5) * 200;
+        posArray[i*3+1] = (Math.random() - 0.5) * 100;
+        posArray[i*3+2] = (Math.random() - 0.5) * 50 - 20;
+        
+        const isBlue = Math.random() > 0.6;
+        colorArray[i*3] = isBlue ? 0 : 1;
+        colorArray[i*3+1] = isBlue ? 0.9 : 0.7;
+        colorArray[i*3+2] = isBlue ? 1 : 0;
+    }
+    
+    particlesGeometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+    particlesGeometry.setAttribute('color', new THREE.BufferAttribute(colorArray, 3));
+    
+    const particlesMaterial = new THREE.PointsMaterial({
+        size: 0.15,
+        vertexColors: true,
+        transparent: true,
+        opacity: 0.4,
+        blending: THREE.AdditiveBlending
+    });
+    
+    const particlesMesh = new THREE.Points(particlesGeometry, particlesMaterial);
+    scene.add(particlesMesh);
+    
+    camera.position.z = 30;
+    
+    let mouseX = 0, mouseY = 0;
+    document.addEventListener('mousemove', (event) => {
+        mouseX = (event.clientX / window.innerWidth) * 2 - 1;
+        mouseY = (event.clientY / window.innerHeight) * 2 - 1;
+    });
+    
+    function animate() {
+        requestAnimationFrame(animate);
+        particlesMesh.rotation.y += 0.0003;
+        particlesMesh.rotation.x += 0.0002;
+        
+        particlesMesh.rotation.x += (mouseY * 0.01 - particlesMesh.rotation.x) * 0.05;
+        particlesMesh.rotation.y += (mouseX * 0.01 - particlesMesh.rotation.y) * 0.05;
+        
+        renderer.render(scene, camera);
+    }
+    animate();
+    
+    window.addEventListener('resize', () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+    
+    // ========== VANILLA TILT ==========
+    VanillaTilt.init(document.querySelectorAll(".card"), {
+        max: 8,
+        speed: 400,
+        glare: true,
+        "max-glare": 0.2,
+        scale: 1.02
+    });
+    
     // ========== SUPABASE ==========
     const supabaseUrl = 'https://ncpoptivxdkdvpotexfe.supabase.co';
     const supabaseKey = 'sb_publishable_sL4M5eSOdVEsDsQEQ0iKQQ_m7gVLZ_-';
     const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
     console.log('✅ Supabase đã kết nối');
 
-    // ========== PARTICLES ==========
-    function createParticles() {
-        const container = document.getElementById('particles');
-        for (let i = 0; i < 50; i++) {
-            const particle = document.createElement('div');
-            particle.className = 'particle';
-            const size = Math.random() * 4 + 2;
-            particle.style.width = size + 'px';
-            particle.style.height = size + 'px';
-            particle.style.left = Math.random() * 100 + '%';
-            particle.style.top = Math.random() * 100 + '%';
-            particle.style.animationDelay = Math.random() * 8 + 's';
-            particle.style.animationDuration = 6 + Math.random() * 6 + 's';
-            container.appendChild(particle);
-        }
-    }
-    createParticles();
-
-    // ========== KIỂM TRA ĐĂNG NHẬP ==========
     function checkLoginStatus() {
         const user = JSON.parse(localStorage.getItem('current_user'));
         if (user && user.username) {
@@ -815,7 +862,6 @@
         }
     }
 
-    // ========== VALIDATE ==========
     function validateBirthYear() {
         const input = document.getElementById('regBirthYear');
         const errorSpan = document.getElementById('birthYearError');
@@ -870,7 +916,7 @@
         }
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(email)) {
-            errorSpan.innerText = '⚠️ Email không hợp lệ!';
+            errorSpan.innerText = '⚠️ Email không hợp lệ! (VD: ten@example.com)';
             errorSpan.style.display = 'block';
             return false;
         } else {
@@ -936,7 +982,11 @@
     }
 
     function isStrongPassword(password) {
-        return password.length >= 8 && /[A-Z]/.test(password) && /[a-z]/.test(password) && /[0-9]/.test(password) && /[!@#$%^&*(),.?":{}|<>]/.test(password);
+        return password.length >= 8 && 
+               /[A-Z]/.test(password) && 
+               /[a-z]/.test(password) && 
+               /[0-9]/.test(password) &&
+               /[!@#$%^&*(),.?":{}|<>]/.test(password);
     }
 
     function getPasswordStrength(password) {
@@ -956,21 +1006,26 @@
         const fill = document.getElementById('strengthFill');
         const text = document.getElementById('strengthText');
         if (password === "") { fill.style.width = "0%"; text.innerText = ""; return; }
-        if (strength <= 2) { fill.style.width = "33%"; fill.style.background = "#ff5555"; text.innerText = "⚠️ Mật khẩu yếu"; }
-        else if (strength <= 4) { fill.style.width = "66%"; fill.style.background = "#ffcf00"; text.innerText = "⚠️ Mật khẩu trung bình"; }
+        if (strength <= 2) { fill.style.width = "33%"; fill.style.background = "#ff5555"; text.innerText = "⚠️ Mật khẩu yếu (cần 8 ký tự, hoa, thường, số, đặc biệt)"; }
+        else if (strength <= 4) { fill.style.width = "66%"; fill.style.background = "#ffcf00"; text.innerText = "⚠️ Mật khẩu trung bình (cần 8 ký tự, hoa, thường, số, đặc biệt)"; }
         else { fill.style.width = "100%"; fill.style.background = "#00ff88"; text.innerText = "✅ Mật khẩu mạnh"; }
     }
 
-    // ========== AUTH ==========
     async function login() {
         const username = document.getElementById('loginUsername').value.trim();
         const password = document.getElementById('loginPassword').value.trim();
         const rememberMe = document.getElementById('rememberMe').checked;
-        if (!username || !password) { showToast('⚠️ Vui lòng nhập đầy đủ thông tin!'); return; }
+        const errorDiv = document.getElementById('loginError');
+        
+        if (!username || !password) { 
+            errorDiv.innerText = '⚠️ Vui lòng nhập đầy đủ thông tin!';
+            errorDiv.style.display = 'block';
+            return; 
+        }
+        
         const { data } = await supabaseClient.from('users').select('*').eq('username', username).eq('password', password);
         if (data && data.length > 0) {
             const user = data[0];
-            // LƯU ĐẦY ĐỦ THÔNG TIN (bao gồm email và phone)
             const userData = { 
                 id: user.id, 
                 username: user.username, 
@@ -993,7 +1048,11 @@
             document.getElementById('loginUsername').value = '';
             document.getElementById('loginPassword').value = '';
             document.getElementById('rememberMe').checked = false;
-        } else { showToast('❌ Sai tên đăng nhập hoặc mật khẩu!'); }
+            errorDiv.style.display = 'none';
+        } else { 
+            errorDiv.innerText = '❌ Tên đăng nhập hoặc mật khẩu không đúng!';
+            errorDiv.style.display = 'block';
+        }
     }
 
     async function register() {
@@ -1015,7 +1074,7 @@
         if (!email) { showToast('⚠️ Vui lòng nhập email!'); hasError = true; }
         else if (!validateEmail()) hasError = true;
         if (!password) { showToast('⚠️ Vui lòng nhập mật khẩu!'); hasError = true; }
-        else if (!isStrongPassword(password)) { showToast('⚠️ Mật khẩu phải có ít nhất 8 ký tự, gồm: 1 chữ hoa, 1 chữ thường, 1 số, 1 ký tự đặc biệt!'); hasError = true; }
+        else if (!isStrongPassword(password)) { showToast('⚠️ Mật khẩu phải có ít nhất 8 ký tự, gồm: chữ hoa, chữ thường, số và ký tự đặc biệt (!@#$%^&*)'); hasError = true; }
         if (hasError) return;
 
         const { error } = await supabaseClient.from('users').insert([{ 
@@ -1056,7 +1115,6 @@
         showToast('🔓 Đã đăng xuất!');
     }
 
-    // ========== MODAL ==========
     function openLoginModal() {
         const savedUsername = localStorage.getItem('saved_username');
         const savedPassword = localStorage.getItem('saved_password');
@@ -1065,6 +1123,7 @@
             document.getElementById('loginPassword').value = savedPassword;
             document.getElementById('rememberMe').checked = true;
         }
+        document.getElementById('loginError').style.display = 'none';
         document.getElementById('loginModal').classList.add('active');
     }
 
@@ -1073,16 +1132,17 @@
     function switchToRegister() { closeModal('loginModal'); openRegisterModal(); }
     function switchToLogin() { closeModal('registerModal'); openLoginModal(); }
 
-    // ========== TRA CỨU VÉ ==========
     async function searchTicket() {
         const id = document.getElementById('searchID').value.trim();
         const resultDiv = document.getElementById('result');
-        if (id === "") { resultDiv.innerHTML = "<div class='result-card' style='color:#ffd369;'>⚠️ Vui lòng nhập mã vé!</div>"; return; }
-        // Lấy từ localStorage vì ticket chưa lên Supabase
+        if (id === "") { 
+            resultDiv.innerHTML = "";
+            return; 
+        }
         const allTickets = JSON.parse(localStorage.getItem('all_tickets')) || [];
         const ticket = allTickets.find(t => t.ticketId === id);
         if (!ticket) {
-            resultDiv.innerHTML = `<div class='result-card' style='color:#ff9999;'>❌ Không tìm thấy vé! Mã "${id}" không tồn tại.</div>`;
+            resultDiv.innerHTML = `<div class='result-card' style='color:#ff9999;'><i class="fas fa-exclamation-circle"></i> ❌ Không tìm thấy vé! Mã "${id}" không tồn tại.</div>`;
             return;
         }
         resultDiv.innerHTML = `
@@ -1116,7 +1176,6 @@
             </div>`).join('') + `</div>`;
     }
 
-    // ========== UTILS ==========
     function showToast(msg) {
         let t = document.createElement('div');
         t.className = 'toast';
