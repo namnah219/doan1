@@ -1093,7 +1093,7 @@
                 <div style="margin:8px 0"><strong>Khu vực:</strong> ${ticket.sectorName}</div>
                 <div style="margin:8px 0"><strong>Ghế:</strong> ${ticket.seats.join(', ')}</div>
                 <div style="margin:8px 0"><strong>Tổng tiền:</strong> ${ticket.totalAmount.toLocaleString()} VND</div>
-                <button onclick="window.location.href='../1.4_Hien_ID/ticket.html?id=${ticket.ticketId}'" style="margin-top:15px; background:#00c9ff; color:#000; padding:10px 25px; border:none; border-radius:40px; cursor:pointer; font-weight:bold;">🎟️ Xem vé chi tiết</button>
+                <button onclick="window.location.href='./ticket.html?id=${ticket.ticketId}'" style="margin-top:15px; background:#00c9ff; color:#000; padding:10px 25px; border:none; border-radius:40px; cursor:pointer; font-weight:bold;">🎟️ Xem vé chi tiết</button>
             </div>
         `;
     }
@@ -1112,7 +1112,7 @@
             myTickets.map(t => `<div style="margin-bottom:15px; padding-bottom:12px; border-bottom:1px solid rgba(255,255,255,0.1);">
                 <div><strong>🎫 ${t.ticketId}</strong> - ${t.sectorName} - ${t.seats.length} ghế</div>
                 <div style="font-size:0.75rem; color:#aaa; margin:5px 0;">📅 ${new Date(t.bookingTime).toLocaleString('vi-VN')}</div>
-                <button onclick="window.location.href='../1.4_Hien_ID/ticket.html?id=${t.ticketId}'" style="margin-top:8px; background:#00c9ff; color:#000; padding:6px 18px; border:none; border-radius:25px; cursor:pointer;">Xem vé</button>
+                <button onclick="window.location.href='./ticket.html?id=${t.ticketId}'" style="margin-top:8px; background:#00c9ff; color:#000; padding:6px 18px; border:none; border-radius:25px; cursor:pointer;">Xem vé</button>
             </div>`).join('') + `</div>`;
     }
 
@@ -1137,7 +1137,7 @@
             return;
         }
         localStorage.setItem('selectedEvent', eventName);
-        window.location.href = '../1.2_San_van_dong/stadium.html';
+        window.location.href = './stadium.html';
     }
 
     checkLoginStatus();

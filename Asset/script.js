@@ -8,7 +8,7 @@ let selectedSeats = [];
 // ===============================
 function goToStadium(eventName){
 localStorage.setItem("event", eventName);
-window.location.href = "../1.2_Sân vận động/stadium.html";
+window.location.href = "./stadium.html";
 }
 
 // ===============================
@@ -16,7 +16,7 @@ window.location.href = "../1.2_Sân vận động/stadium.html";
 // ===============================
 function selectStand(stand){
 localStorage.setItem("stand", stand);
-window.location.href = "../1.3_Chọn ghế/seat.html";
+window.location.href = "./seat.html";
 }
 
 // ===============================

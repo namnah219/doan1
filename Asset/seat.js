@@ -9,7 +9,7 @@ class SeatSelector {
         this.sectorMeta = this.loadSectorMeta();
         if (!this.sectorMeta[this.sectorId]) {
             alert('Không tìm thấy thông tin khán đài! Quay lại trang trước.');
-            window.location.href = '../1.2_Sân vận động/stadium.html';
+            window.location.href = './stadium.html';
             return;
         }
         
@@ -180,7 +180,7 @@ class SeatSelector {
         alert(`Đặt vé thành công!\nMã vé của bạn: ${ticketId}\nVui lòng giữ mã này để tra cứu.`);
         
         // Quay về stadium
-        window.location.href = '../1.2_Sân vận động/stadium.html';
+        window.location.href = './stadium.html';
     }
     
     generateTicketId() {

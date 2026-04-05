@@ -514,7 +514,7 @@
     document.getElementById('selectBtn').onclick = () => {
         if (currentSectorId) {
             localStorage.setItem('selected_sector', currentSectorId);
-            window.location.href = `../1.3_Ghe_ngoi/seat.html?sector=${currentSectorId}`;
+            window.location.href = `./seat.html?sector=${currentSectorId}`;
         } else {
             alert('Vui lòng chọn một khu vực trên sân!');
         }

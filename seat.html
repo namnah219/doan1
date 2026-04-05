@@ -220,7 +220,7 @@
 
 <div class="container">
     <div class="header">
-        <a href="../1.2_San_van_dong/stadium.html" class="back-link">← Quay lại sân vận động</a>
+        <a href="./stadium.html" class="back-link">← Quay lại sân vận động</a>
         <h1>🎫 CHỌN GHẾ - <span id="sectorName">...</span></h1>
         <div></div>
     </div>
@@ -283,7 +283,7 @@
     
     if (!sectorId) {
         alert('Không có khu vực! Quay lại sân vận động.');
-        window.location.href = '../1.2_San_van_dong/stadium.html';
+        window.location.href = './stadium.html';
     }
     
     const sectorsMeta = {
@@ -305,7 +305,7 @@
     const meta = sectorsMeta[sectorId];
     if (!meta) {
         alert('Khu vực không hợp lệ!');
-        window.location.href = '../1.2_San_van_dong/stadium.html';
+        window.location.href = './stadium.html';
     }
     
     document.getElementById('sectorName').innerText = meta.name;
@@ -607,7 +607,7 @@
         updateChannel.postMessage({ type: 'seat_updated', sector: sectorId });
         
         showToast(`✅ Đặt thành công ${selectedSeats.length} ghế! Mã vé: ${bookingCode}`);
-        window.location.href = `../1.4_Hien_ID/ticket.html?id=${bookingCode}`;
+        window.location.href = `./ticket.html?id=${bookingCode}`;
         return true;
     }
     
