@@ -499,7 +499,7 @@
     async function processBooking() {
         if (!currentUser) {
             showToast('⚠️ Vui lòng đăng nhập lại!');
-            window.location.href = '../1.1_Trang_chu_chinh/index.html';
+            window.location.href = './index.html';
             return false;
         }
         if (selectedSeats.length === 0) {
@@ -633,7 +633,7 @@
         if (!currentUserId) {
             showToast('⚠️ Vui lòng đăng nhập để đặt vé!');
             setTimeout(() => {
-                window.location.href = '../1.1_Trang_chu_chinh/index.html';
+                window.location.href = './index.html';
             }, 1500);
             return;
         }
