@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chọn ghế - Super Arena</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Montserrat:wght@200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: radial-gradient(ellipse at 30% 20%, #0a0a1a, #010005);
+            font-family: 'Montserrat', sans-serif;
+            color: #fff;
+            min-height: 100vh;
+            padding: 25px;
+        }
+        .container { max-width: 1400px; margin: 0 auto; }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        .back-link {
+            color: #00f2ff;
+            text-decoration: none;
+            font-family: 'Orbitron';
+            font-size: 0.8rem;
+            padding: 8px 18px;
+            border: 1px solid rgba(0, 242, 255, 0.4);
+            border-radius: 30px;
+            transition: 0.3s;
+        }
+        .back-link:hover { background: rgba(0, 242, 255, 0.15); }
+        h1 {
+            font-family: 'Orbitron';
+            font-size: 1.6rem;
+            background: linear-gradient(135deg, #fff, #00f2ff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        
+        .mode-selector {
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.6), rgba(0, 242, 255, 0.1));
+            border-radius: 60px;
+            padding: 12px 25px;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+            border: 1px solid rgba(0, 242, 255, 0.3);
+        }
+        .mode-selector label {
+            font-family: 'Orbitron';
+            font-size: 0.8rem;
+            color: #00f2ff;
+            letter-spacing: 2px;
+        }
+        .mode-selector select {
+            background: rgba(0, 0, 0, 0.7);
+            border: 1px solid #00f2ff;
+            color: #fff;
+            padding: 10px 20px;
+            border-radius: 40px;
+            font-family: 'Montserrat';
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .mode-selector select:hover { border-color: #ffcf00; }
+        .mode-selector select option { background: #0a0a1a; }
+        
+        .info-grid {
+            display: flex;
+            gap: 18px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
+        .info-card {
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 14px 22px;
+            border: 1px solid rgba(0, 242, 255, 0.25);
+            flex: 1;
+            min-width: 140px;
+            text-align: center;
+        }
+        .info-card .label { font-size: 0.65rem; color: #00f2ff; letter-spacing: 2px; }
+        .info-card .value { font-family: 'Orbitron'; font-size: 1.4rem; font-weight: 800; margin-top: 6px; }
+        .legend {
+            display: flex;
+            gap: 30px;
+            margin-bottom: 25px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .legend-item { display: flex; align-items: center; gap: 10px; font-size: 0.8rem; }
+        .legend-color { width: 24px; height: 24px; border-radius: 8px; }
+        .legend-color.available { background: #2a6b2a; box-shadow: 0 0 5px #2a6b2a; }
+        .legend-color.selected { background: #ffaa00; box-shadow: 0 0 5px #ffaa00; }
+        .legend-color.booked { background: #cc0000; box-shadow: 0 0 5px #cc0000; }
+        .batch-bar {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .batch-btn {
+            background: transparent;
+            border: 2px solid #00f2ff;
+            color: #00f2ff;
+            padding: 8px 18px;
+            font-family: 'Orbitron';
+            font-weight: 600;
+            font-size: 0.75rem;
+            border-radius: 40px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .batch-btn:hover { background: #00f2ff; color: #000; transform: scale(1.02); }
+        .batch-btn.clear { border-color: #ff5555; color: #ff5555; }
+        .batch-btn.clear:hover { background: #ff5555; color: #000; }
+        .seat-wrapper {
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 24px;
+            padding: 20px;
+            margin-bottom: 25px;
+            border: 1px solid rgba(0, 242, 255, 0.2);
+            overflow-x: auto;
+        }
+        .seat-grid { display: flex; flex-direction: column; gap: 8px; }
+        .seat-row { display: flex; gap: 8px; align-items: center; }
+        .row-label {
+            width: 50px;
+            font-family: 'Orbitron';
+            font-weight: 700;
+            color: #00f2ff;
+            text-align: center;
+            font-size: 0.9rem;
+            background: rgba(0, 242, 255, 0.1);
+            padding: 8px 0;
+            border-radius: 10px;
+        }
+        .seats-container { display: flex; gap: 8px; flex-wrap: wrap; }
+        .seat {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+            transition: all 0.2s;
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .seat.available { background: #2a6b2a; }
+        .seat.available:hover { background: #3a9b3a; transform: scale(1.05); }
+        .seat.selected { background: #ffaa00; box-shadow: 0 0 12px #ffaa00; transform: scale(1.02); }
+        .seat.booked { background: #cc0000; cursor: not-allowed; opacity: 0.6; }
+        .summary-bar {
+            background: linear-gradient(135deg, rgba(0, 242, 255, 0.1), rgba(255, 207, 0, 0.05));
+            border-radius: 24px;
+            padding: 18px 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+            border: 1px solid rgba(0, 242, 255, 0.3);
+        }
+        .summary-info { display: flex; gap: 30px; flex-wrap: wrap; }
+        .summary-item { text-align: center; }
+        .summary-item .label { font-size: 0.7rem; color: #aaa; }
+        .summary-item .value { font-family: 'Orbitron'; font-size: 1.3rem; font-weight: 800; }
+        .total-price { font-family: 'Orbitron'; font-size: 1.8rem; font-weight: 900; color: #ffcf00; }
+        .btn-confirm {
+            background: linear-gradient(90deg, #ff7a18, #ffb347);
+            border: none;
+            padding: 14px 35px;
+            border-radius: 50px;
+            color: #000;
+            font-family: 'Orbitron';
+            font-weight: 800;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .btn-confirm:hover { transform: scale(1.02); box-shadow: 0 0 25px rgba(255, 180, 70, 0.6); }
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: linear-gradient(90deg, #00f2ff, #0088aa);
+            color: #000;
+            padding: 12px 28px;
+            border-radius: 60px;
+            font-weight: bold;
+            z-index: 200;
+            animation: slideIn 0.4s ease;
+        }
+        @keyframes slideIn { from { opacity: 0; transform: translateX(100px); } to { opacity: 1; transform: translateX(0); } }
+        @media (max-width: 1000px) {
+            .seat { width: 40px; height: 40px; font-size: 10px; }
+            .row-label { width: 40px; font-size: 0.75rem; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <a href="../1.2_San_van_dong/stadium.html" class="back-link">← Quay lại sân vận động</a>
+        <h1>🎫 CHỌN GHẾ - <span id="sectorName">...</span></h1>
+        <div></div>
+    </div>
+
+    <div class="mode-selector">
+        <label>🎛️ CHẾ ĐỘ XỬ LÝ XUNG ĐỘT:</label>
+        <select id="bookingMode">
+            <option value="race">⚠️ Race Condition (có lỗi - 1 ghế 2 người)</option>
+            <option value="random">🎲 Random (bốc thăm ngẫu nhiên)</option>
+            <option value="priority">⭐ Ưu tiên (VIP - đặt nhiều nhất trước)</option>
+            <option value="mutex" selected>🔒 Mutex (an toàn tuyệt đối)</option>
+        </select>
+    </div>
+
+    <div class="info-grid">
+        <div class="info-card"><div class="label">💰 GIÁ VÉ</div><div class="value" id="priceDisplay">0</div></div>
+        <div class="info-card"><div class="label">🏟️ TỔNG GHẾ</div><div class="value" id="totalSeats">0</div></div>
+        <div class="info-card"><div class="label">✅ CÒN TRỐNG</div><div class="value" id="availSeats" style="color:#0f0;">0</div></div>
+        <div class="info-card"><div class="label">🟡 ĐANG CHỌN</div><div class="value" id="selectedCount">0</div></div>
+    </div>
+
+    <div class="legend">
+        <div class="legend-item"><div class="legend-color available"></div><span>Ghế trống</span></div>
+        <div class="legend-item"><div class="legend-color selected"></div><span>Đang chọn</span></div>
+        <div class="legend-item"><div class="legend-color booked"></div><span>Đã đặt</span></div>
+    </div>
+
+    <div class="batch-bar">
+        <button class="batch-btn" data-batch="1">🎫 Đơn lẻ 1 ghế</button>
+        <button class="batch-btn" data-batch="10">📦 Cụm 10 ghế</button>
+        <button class="batch-btn" data-batch="15">📦 Cụm 15 ghế</button>
+        <button class="batch-btn" data-batch="30">📦 Cụm 30 ghế</button>
+        <button class="batch-btn" data-batch="50">📦 Cụm 50 ghế</button>
+        <button class="batch-btn clear" id="clearBtn">🗑️ Bỏ chọn</button>
+    </div>
+
+    <div class="seat-wrapper">
+        <div class="seat-grid" id="seatGrid"></div>
+    </div>
+
+    <div class="summary-bar">
+        <div class="summary-info">
+            <div class="summary-item"><div class="label">🪑 SỐ GHẾ CHỌN</div><div class="value" id="finalCount">0</div></div>
+            <div class="summary-item"><div class="label">💵 TẠM TÍNH</div><div class="value total-price" id="finalPrice">0 VND</div></div>
+        </div>
+        <button class="btn-confirm" id="confirmBtn">✅ XÁC NHẬN ĐẶT VÉ</button>
+    </div>
+</div>
+
+<script>
+    // ========== SUPABASE ==========
+    const supabaseUrl = 'https://ncpoptivxdkdvpotexfe.supabase.co';
+    const supabaseKey = 'sb_publishable_sL4M5eSOdVEsDsQEQ0iKQQ_m7gVLZ_-';
+    const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
+    console.log('✅ Supabase đã kết nối');
+
+    // ========== LẤY THÔNG TIN KHU VỰC ==========
+    const urlParams = new URLSearchParams(window.location.search);
+    const sectorId = urlParams.get('sector');
+    
+    if (!sectorId) {
+        alert('Không có khu vực! Quay lại sân vận động.');
+        window.location.href = '../1.2_San_van_dong/stadium.html';
+    }
+    
+    const sectorsMeta = {
+        'A1': { name: '🏆 A1 - ROYAL VIP', price: 5000000, totalSeats: 1000 },
+        'A2': { name: '✨ A2 - PREMIUM', price: 1200000, totalSeats: 1000 },
+        'B1': { name: '🎤 B1 - FAN ZONE', price: 1500000, totalSeats: 1000 },
+        'B2': { name: '🎶 B2 - UPPER FAN', price: 1200000, totalSeats: 1000 },
+        'C1': { name: '⚽ C1 - GOAL LEFT', price: 900000, totalSeats: 750 },
+        'C2': { name: '🔭 C2 - UPPER GOAL', price: 600000, totalSeats: 800 },
+        'D1': { name: '⚽ D1 - GOAL RIGHT', price: 900000, totalSeats: 750 },
+        'D2': { name: '🔭 D2 - UPPER RIGHT', price: 600000, totalSeats: 800 },
+        'CNW': { name: '📍 CORNER NW', price: 600000, totalSeats: 500 },
+        'CNE': { name: '📍 CORNER NE', price: 600000, totalSeats: 500 },
+        'CSW': { name: '📍 CORNER SW', price: 600000, totalSeats: 500 },
+        'CSE': { name: '📍 CORNER SE', price: 600000, totalSeats: 500 },
+        'VIP': { name: '💎 DIAMOND SUITE', price: 50000000, totalSeats: 100 }
+    };
+    
+    const meta = sectorsMeta[sectorId];
+    if (!meta) {
+        alert('Khu vực không hợp lệ!');
+        window.location.href = '../1.2_San_van_dong/stadium.html';
+    }
+    
+    document.getElementById('sectorName').innerText = meta.name;
+    document.getElementById('priceDisplay').innerHTML = meta.price.toLocaleString() + ' VND';
+    document.getElementById('totalSeats').innerText = meta.totalSeats.toLocaleString();
+    
+    const COLS_PER_ROW = 16;
+    const ROWS = Math.ceil(meta.totalSeats / COLS_PER_ROW);
+    const rowLetters = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'];
+    
+    function getSeatNumber(rowIndex, colIndex) { return rowIndex * COLS_PER_ROW + colIndex + 1; }
+    function getSeatLabel(rowLetter, colIndex) { return `${rowLetter}${colIndex + 1}`; }
+    
+    let bookedSeats = [];
+    let selectedSeats = [];
+    let currentUser = JSON.parse(localStorage.getItem('current_user')) || null;
+    let currentUserId = currentUser ? currentUser.id : null;
+    
+    async function loadSeats() {
+        try {
+            const { data, error } = await supabaseClient
+                .from('seats')
+                .select('seat_number, status')
+                .eq('sector_id', sectorId);
+            
+            if (error) throw error;
+            bookedSeats = data.filter(s => s.status === 'booked').map(s => s.seat_number);
+            const available = meta.totalSeats - bookedSeats.length;
+            document.getElementById('availSeats').innerText = available.toLocaleString();
+            renderSeats();
+        } catch (err) {
+            console.error('Lỗi load ghế:', err);
+            showToast('⚠️ Không thể tải dữ liệu ghế!');
+        }
+    }
+    
+    function renderSeats() {
+        const grid = document.getElementById('seatGrid');
+        grid.innerHTML = '';
+        
+        for (let row = 0; row < ROWS; row++) {
+            const rowDiv = document.createElement('div');
+            rowDiv.className = 'seat-row';
+            const rowLabel = document.createElement('div');
+            rowLabel.className = 'row-label';
+            rowLabel.innerText = rowLetters[row % rowLetters.length];
+            rowDiv.appendChild(rowLabel);
+            const seatsContainer = document.createElement('div');
+            seatsContainer.className = 'seats-container';
+            
+            for (let col = 0; col < COLS_PER_ROW; col++) {
+                const seatNum = getSeatNumber(row, col);
+                if (seatNum > meta.totalSeats) break;
+                const seatDiv = document.createElement('div');
+                seatDiv.className = 'seat';
+                
+                if (bookedSeats.includes(seatNum)) {
+                    seatDiv.classList.add('booked');
+                    seatDiv.innerText = '✖';
+                } else if (selectedSeats.includes(seatNum)) {
+                    seatDiv.classList.add('selected');
+                    seatDiv.innerText = '✓';
+                } else {
+                    seatDiv.classList.add('available');
+                    seatDiv.innerText = getSeatLabel(rowLetters[row % rowLetters.length], col);
+                }
+                
+                seatDiv.onclick = (function(seatNumber) {
+                    return function() {
+                        if (bookedSeats.includes(seatNumber)) {
+                            showToast('❌ Ghế đã được đặt!');
+                            return;
+                        }
+                        if (selectedSeats.includes(seatNumber)) {
+                            selectedSeats = selectedSeats.filter(s => s !== seatNumber);
+                            showToast(`🟡 Đã bỏ chọn ghế ${getSeatLabel(rowLetters[row % rowLetters.length], col)}`);
+                        } else {
+                            selectedSeats.push(seatNumber);
+                            showToast(`🟢 Đã chọn ghế ${getSeatLabel(rowLetters[row % rowLetters.length], col)}`);
+                        }
+                        updateSummary();
+                        renderSeats();
+                    };
+                })(seatNum);
+                seatsContainer.appendChild(seatDiv);
+            }
+            rowDiv.appendChild(seatsContainer);
+            grid.appendChild(rowDiv);
+        }
+    }
+    
+    function updateSummary() {
+        document.getElementById('selectedCount').innerText = selectedSeats.length;
+        document.getElementById('finalCount').innerText = selectedSeats.length;
+        document.getElementById('finalPrice').innerHTML = (selectedSeats.length * meta.price).toLocaleString() + ' VND';
+    }
+    
+    async function selectBatch(batchSize) {
+        await loadSeats();
+        let availableSeats = [];
+        for (let i = 1; i <= meta.totalSeats; i++) {
+            if (!bookedSeats.includes(i) && !selectedSeats.includes(i)) {
+                availableSeats.push(i);
+            }
+        }
+        if (availableSeats.length < batchSize) {
+            showToast(`❌ Không đủ ghế trống! Chỉ còn ${availableSeats.length} ghế.`);
+            return;
+        }
+        availableSeats.sort((a, b) => a - b);
+        let bestBatch = [];
+        for (let i = 0; i <= availableSeats.length - batchSize; i++) {
+            let isConsecutive = true;
+            for (let j = 0; j < batchSize - 1; j++) {
+                if (availableSeats[i + j + 1] !== availableSeats[i + j] + 1) {
+                    isConsecutive = false;
+                    break;
+                }
+            }
+            if (isConsecutive) {
+                bestBatch = availableSeats.slice(i, i + batchSize);
+                break;
+            }
+        }
+        if (bestBatch.length === 0) {
+            showToast(`❌ Không tìm thấy cụm ${batchSize} ghế liền kề còn trống!`);
+            return;
+        }
+        selectedSeats.push(...bestBatch);
+        updateSummary();
+        renderSeats();
+        showToast(`✅ Đã chọn cụm ${batchSize} ghế liền kề!`);
+    }
+    
+    async function processMutex() {
+        const { error } = await supabaseClient
+            .from('seats')
+            .update({ status: 'booked', booked_by: currentUserId, booked_at: new Date() })
+            .eq('sector_id', sectorId)
+            .in('seat_number', selectedSeats)
+            .eq('status', 'available');
+        return !error;
+    }
+    
+    async function processRaceCondition() {
+        for (const seatNum of selectedSeats) {
+            await supabaseClient
+                .from('seats')
+                .update({ status: 'booked', booked_by: currentUserId, booked_at: new Date() })
+                .eq('sector_id', sectorId)
+                .eq('seat_number', seatNum);
+        }
+        return true;
+    }
+    
+    async function processRandom() {
+        const shuffled = [...selectedSeats];
+        for (let i = shuffled.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+        }
+        const successSeats = shuffled.slice(0, Math.ceil(selectedSeats.length / 2));
+        const { error } = await supabaseClient
+            .from('seats')
+            .update({ status: 'booked', booked_by: currentUserId, booked_at: new Date() })
+            .eq('sector_id', sectorId)
+            .in('seat_number', successSeats)
+            .eq('status', 'available');
+        return !error;
+    }
+    
+    async function processPriority() {
+        const { data: topUser } = await supabaseClient
+            .from('users')
+            .select('id, total_bookings, fullname')
+            .order('total_bookings', { ascending: false })
+            .limit(1);
+        if (topUser && topUser[0] && topUser[0].id !== currentUserId) {
+            showToast(`⭐ Ưu tiên: User "${topUser[0].fullname}" (${topUser[0].total_bookings} vé) được ưu tiên hơn!`);
+            return false;
+        }
+        const { error } = await supabaseClient
+            .from('seats')
+            .update({ status: 'booked', booked_by: currentUserId, booked_at: new Date() })
+            .eq('sector_id', sectorId)
+            .in('seat_number', selectedSeats)
+            .eq('status', 'available');
+        return !error;
+    }
+    
+    async function processBooking() {
+        if (!currentUser) {
+            showToast('⚠️ Vui lòng đăng nhập lại!');
+            window.location.href = '../1.1_Trang_chu_chinh/index.html';
+            return false;
+        }
+        if (selectedSeats.length === 0) {
+            showToast('⚠️ Vui lòng chọn ghế!');
+            return false;
+        }
+        
+        const mode = document.getElementById('bookingMode').value;
+        
+        if (mode !== 'race') {
+            const { data: checkData } = await supabaseClient
+                .from('seats')
+                .select('seat_number, status')
+                .eq('sector_id', sectorId)
+                .in('seat_number', selectedSeats);
+            const conflictSeats = checkData?.filter(s => s.status !== 'available').map(s => s.seat_number) || [];
+            if (conflictSeats.length > 0) {
+                showToast(`❌ Ghế ${conflictSeats.join(', ')} đã có người đặt! Vui lòng chọn lại.`);
+                selectedSeats = [];
+                updateSummary();
+                await loadSeats();
+                return false;
+            }
+        }
+        
+        const bookingCode = `TIX${Date.now()}${Math.floor(Math.random() * 10000)}`;
+        let success = false;
+        
+        switch (mode) {
+            case 'race': success = await processRaceCondition(); break;
+            case 'random': success = await processRandom(); break;
+            case 'priority': success = await processPriority(); break;
+            default: success = await processMutex();
+        }
+        
+        if (!success) return false;
+        
+        const seatsLabel = selectedSeats.map(seatNum => {
+            const rowIdx = Math.floor((seatNum - 1) / COLS_PER_ROW);
+            const colIdx = (seatNum - 1) % COLS_PER_ROW;
+            return `${rowLetters[rowIdx % rowLetters.length]}${colIdx + 1}`;
+        });
+        
+        // ========== LƯU VÀO SUPABASE BOOKINGS (QUAN TRỌNG) ==========
+        const { error: bookingError } = await supabaseClient
+            .from('bookings')
+            .insert([{
+                ticket_id: bookingCode,
+                user_id: currentUserId,
+                sector_id: sectorId,
+                sector_name: meta.name,
+                seats: seatsLabel,
+                seats_number: selectedSeats,
+                fullname: currentUser.fullname || currentUser.username,
+                email: currentUser.email || '',
+                phone: currentUser.phone || '',
+                total_amount: selectedSeats.length * meta.price,
+                event_name: localStorage.getItem('selectedEvent') || 'Super Concert 2026',
+                conflict_mode: mode
+            }]);
+        
+        if (bookingError) {
+            console.error('Lỗi lưu bookings:', bookingError);
+            showToast('⚠️ Lưu vé thất bại!');
+            return false;
+        }
+        
+        // Lưu vào localStorage để fallback
+        const ticketData = {
+            ticketId: bookingCode,
+            sectorId: sectorId,
+            sectorName: meta.name,
+            seats: seatsLabel,
+            seatsNumber: selectedSeats,
+            fullname: currentUser.fullname || currentUser.username,
+            email: currentUser.email || 'user@email.com',
+            phone: currentUser.phone || '0123456789',
+            totalAmount: selectedSeats.length * meta.price,
+            bookingTime: new Date().toISOString(),
+            eventName: localStorage.getItem('selectedEvent') || 'Super Concert 2026',
+            conflictMode: mode
+        };
+        
+        const allTickets = JSON.parse(localStorage.getItem('all_tickets')) || [];
+        allTickets.push(ticketData);
+        localStorage.setItem('all_tickets', JSON.stringify(allTickets));
+        localStorage.setItem('lastTicketId', bookingCode);
+        localStorage.setItem('lastTicketData', JSON.stringify(ticketData));
+        
+        if (mode !== 'race') {
+            const newTotal = (currentUser.total_bookings || 0) + 1;
+            await supabaseClient
+                .from('users')
+                .update({ total_bookings: newTotal })
+                .eq('id', currentUserId);
+            currentUser.total_bookings = newTotal;
+            localStorage.setItem('current_user', JSON.stringify(currentUser));
+        }
+        
+        selectedSeats = [];
+        updateSummary();
+        await loadSeats();
+        
+        const updateChannel = new BroadcastChannel('arena_updates');
+        updateChannel.postMessage({ type: 'seat_updated', sector: sectorId });
+        
+        showToast(`✅ Đặt thành công ${selectedSeats.length} ghế! Mã vé: ${bookingCode}`);
+        window.location.href = `../1.4_Hien_ID/ticket.html?id=${bookingCode}`;
+        return true;
+    }
+    
+    document.getElementById('confirmBtn').onclick = async () => {
+        await processBooking();
+    };
+    
+    document.querySelectorAll('.batch-btn').forEach(btn => {
+        btn.onclick = async () => {
+            const batch = parseInt(btn.dataset.batch);
+            if (btn.id === 'clearBtn') {
+                selectedSeats = [];
+                updateSummary();
+                renderSeats();
+                showToast('🗑️ Đã bỏ chọn tất cả ghế');
+            } else if (!isNaN(batch)) {
+                await selectBatch(batch);
+            }
+        };
+    });
+    
+    async function init() {
+        if (!currentUserId) {
+            showToast('⚠️ Vui lòng đăng nhập để đặt vé!');
+            setTimeout(() => {
+                window.location.href = '../1.1_Trang_chu_chinh/index.html';
+            }, 1500);
+            return;
+        }
+        await loadSeats();
+        updateSummary();
+        showToast('🎫 Chọn ghế và chế độ xử lý, sau đó bấm XÁC NHẬN');
+    }
+    
+    init();
+    
+    function showToast(msg) {
+        let t = document.createElement('div');
+        t.className = 'toast';
+        t.innerText = msg;
+        document.body.appendChild(t);
+        setTimeout(() => t.remove(), 3000);
+    }
+    
+    const channel = new BroadcastChannel('arena_updates');
+    channel.onmessage = () => loadSeats();
+</script>
+</body>
+</html>

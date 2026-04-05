@@ -1,0 +1,550 @@
+/* ========== SUPER ARENA - PREMIUM CSS ========== */
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Montserrat:wght@200;300;400;500;600;700;800;900&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background: radial-gradient(ellipse at 30% 20%, #0a0a1a, #010005);
+    font-family: 'Montserrat', sans-serif;
+    color: #fff;
+    height: 100vh;
+    overflow: hidden;
+}
+
+.app {
+    display: flex;
+    height: 100vh;
+}
+
+/* ========== STADIUM 3D AREA ========== */
+.stadium-area {
+    flex: 1.3;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    perspective: 2000px;
+    overflow: hidden;
+    background: radial-gradient(circle at 40% 50%, #0a0a1a 0%, #020008 100%);
+}
+
+.stadium-area::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle at 50% 50%, rgba(0, 242, 255, 0.1), transparent 70%);
+    pointer-events: none;
+    animation: pulseLight 4s ease-in-out infinite;
+}
+
+@keyframes pulseLight {
+    0%, 100% { opacity: 0.4; }
+    50% { opacity: 1; }
+}
+
+.stadium-3d {
+    transform-style: preserve-3d;
+    transform: rotateX(52deg) rotateZ(-18deg) scale(0.88);
+    transition: transform 0.05s linear;
+    cursor: grab;
+    filter: drop-shadow(0 0 40px rgba(0, 0, 0, 0.6));
+}
+
+.stadium-3d:active {
+    cursor: grabbing;
+}
+
+svg {
+    width: 1020px;
+    filter: drop-shadow(0 0 50px rgba(0, 242, 255, 0.25));
+    transition: filter 0.3s;
+}
+
+svg:hover {
+    filter: drop-shadow(0 0 80px rgba(0, 242, 255, 0.4));
+}
+
+/* ========== SECTOR ========== */
+.sector {
+    cursor: pointer;
+    transition: all 0.35s cubic-bezier(0.2, 0.9, 0.4, 1.3);
+    stroke-width: 1.8;
+    stroke: rgba(255, 255, 255, 0.2);
+}
+
+.sector:hover {
+    stroke: #00f2ff;
+    stroke-width: 3.8;
+    filter: brightness(1.5) drop-shadow(0 0 20px rgba(0, 242, 255, 0.8));
+}
+
+.sector.selected {
+    stroke: #ffcf00 !important;
+    stroke-width: 5 !important;
+    filter: brightness(1.7) drop-shadow(0 0 30px rgba(255, 207, 0, 0.9));
+    animation: selectedPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes selectedPulse {
+    0%, 100% { filter: brightness(1.7) drop-shadow(0 0 25px rgba(255, 207, 0, 0.7)); }
+    50% { filter: brightness(2.1) drop-shadow(0 0 45px rgba(255, 207, 0, 1)); }
+}
+
+/* ========== RIGHT PANEL ========== */
+.info-panel {
+    width: 540px;
+    background: rgba(5, 5, 15, 0.92);
+    backdrop-filter: blur(28px);
+    border-left: 1px solid rgba(0, 242, 255, 0.5);
+    padding: 35px 32px;
+    display: flex;
+    flex-direction: column;
+    z-index: 20;
+    box-shadow: -30px 0 100px rgba(0, 0, 0, 0.8);
+    overflow-y: auto;
+    height: 100vh;
+    position: relative;
+}
+
+.info-panel::-webkit-scrollbar {
+    width: 6px;
+}
+
+.info-panel::-webkit-scrollbar-track {
+    background: #0a0a1a;
+    border-radius: 10px;
+}
+
+.info-panel::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #00f2ff, #ffcf00);
+    border-radius: 10px;
+}
+
+/* ========== LOGO ========== */
+.logo-area {
+    margin-bottom: 35px;
+    padding-bottom: 25px;
+    border-bottom: 2px solid rgba(0, 242, 255, 0.35);
+    position: relative;
+}
+
+.logo-area::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 120px;
+    height: 2px;
+    background: linear-gradient(90deg, #00f2ff, #ffcf00, #ff00ff);
+    animation: lineFlow 3s ease-in-out infinite;
+}
+
+@keyframes lineFlow {
+    0% { width: 0; opacity: 0; }
+    50% { width: 180px; opacity: 1; }
+    100% { width: 0; opacity: 0; }
+}
+
+.logo {
+    font-family: 'Orbitron';
+    font-size: 2.2rem;
+    font-weight: 900;
+    background: linear-gradient(135deg, #ffffff, #00f2ff, #ffcf00, #ff00ff);
+    background-size: 300% 300%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation: gradientShift 5s ease infinite;
+}
+
+@keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+.logo-sub {
+    font-size: 0.75rem;
+    color: #aaa;
+    margin-top: 10px;
+    letter-spacing: 2px;
+}
+
+/* ========== SELECTED CARD ========== */
+.selected-card {
+    background: linear-gradient(135deg, rgba(0, 242, 255, 0.15), rgba(255, 207, 0, 0.08));
+    border-radius: 36px;
+    padding: 28px;
+    margin: 15px 0 25px;
+    border: 1px solid rgba(0, 242, 255, 0.45);
+    backdrop-filter: blur(12px);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+    transition: all 0.3s;
+}
+
+.selected-card:hover {
+    transform: translateY(-4px);
+    border-color: rgba(255, 207, 0, 0.7);
+}
+
+.sector-name-big {
+    font-family: 'Orbitron';
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: #00f2ff;
+    text-shadow: 0 0 20px rgba(0, 242, 255, 0.6);
+}
+
+.sector-sub {
+    font-size: 0.7rem;
+    color: #ffcf00;
+    letter-spacing: 2px;
+    margin-top: 8px;
+}
+
+.stats-row {
+    display: flex;
+    gap: 20px;
+    margin: 25px 0 20px;
+}
+
+.stat-box {
+    flex: 1;
+    background: rgba(0, 0, 0, 0.65);
+    border-radius: 24px;
+    padding: 16px 10px;
+    text-align: center;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    transition: all 0.3s;
+}
+
+.stat-box:hover {
+    transform: translateY(-3px);
+    border-color: rgba(0, 242, 255, 0.5);
+    background: rgba(0, 0, 0, 0.8);
+}
+
+.stat-label {
+    font-size: 0.65rem;
+    color: #bbb;
+    letter-spacing: 2px;
+}
+
+.stat-number {
+    font-family: 'Orbitron';
+    font-size: 1.7rem;
+    font-weight: 800;
+    margin-top: 8px;
+    background: linear-gradient(135deg, #fff, #00f2ff);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 12px;
+    background: #1a1a2a;
+    border-radius: 20px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    width: 0%;
+    height: 100%;
+    background: linear-gradient(90deg, #00f2ff, #ffcf00, #ff00ff, #00f2ff);
+    background-size: 300% 100%;
+    border-radius: 20px;
+    transition: width 0.7s cubic-bezier(0.2, 0.9, 0.4, 1.2);
+    animation: fillShine 2s linear infinite;
+}
+
+@keyframes fillShine {
+    0% { background-position: 0% 0; }
+    100% { background-position: 300% 0; }
+}
+
+/* ========== PRICE AREA - NỔI BẬT NHẤT ========== */
+.price-area {
+    background: linear-gradient(135deg, #ffcf00, #ffaa00, #ff7700);
+    background-size: 200% 200%;
+    border-radius: 32px;
+    padding: 24px;
+    text-align: center;
+    margin: 15px 0 25px;
+    box-shadow: 0 0 50px rgba(255, 136, 0, 0.6);
+    animation: priceGlow 2s ease-in-out infinite;
+    position: relative;
+    overflow: hidden;
+}
+
+@keyframes priceGlow {
+    0%, 100% { box-shadow: 0 0 30px rgba(255, 136, 0, 0.5); }
+    50% { box-shadow: 0 0 70px rgba(255, 136, 0, 0.9); }
+}
+
+.price-area::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.25), transparent);
+    animation: rotateGlow 10s linear infinite;
+}
+
+@keyframes rotateGlow {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.price-label {
+    font-size: 0.75rem;
+    color: #2a1a00;
+    letter-spacing: 3px;
+    font-weight: 700;
+    position: relative;
+    z-index: 1;
+}
+
+.price-value {
+    font-family: 'Orbitron';
+    font-size: 2.8rem;
+    font-weight: 900;
+    color: #1a0a00;
+    text-shadow: 3px 3px 6px rgba(255, 255, 255, 0.4);
+    margin-top: 8px;
+    position: relative;
+    z-index: 1;
+}
+
+.price-note {
+    font-size: 0.7rem;
+    color: #2a1a00;
+    margin-top: 8px;
+    font-weight: 600;
+    position: relative;
+    z-index: 1;
+}
+
+/* ========== BUTTON ========== */
+.btn-select {
+    width: 100%;
+    padding: 20px;
+    background: linear-gradient(90deg, #00c9ff, #0066aa, #00c9ff);
+    background-size: 200% 100%;
+    border: none;
+    border-radius: 60px;
+    color: #000;
+    font-family: 'Orbitron';
+    font-weight: 800;
+    font-size: 1.1rem;
+    cursor: pointer;
+    margin: 20px 0 25px;
+    letter-spacing: 3px;
+    transition: all 0.3s;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-select::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+    transition: left 0.5s;
+}
+
+.btn-select:hover::before {
+    left: 100%;
+}
+
+.btn-select:hover {
+    transform: scale(1.02);
+    box-shadow: 0 0 45px rgba(0, 201, 255, 0.9);
+    background: linear-gradient(90deg, #00f2ff, #0088cc, #00f2ff);
+}
+
+/* ========== SECTOR DESCRIPTION ========== */
+.sector-description {
+    margin-top: 22px;
+    padding: 22px;
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0.55), rgba(0, 242, 255, 0.08));
+    border-radius: 28px;
+    border: 1px solid rgba(0, 242, 255, 0.25);
+    transition: all 0.3s;
+}
+
+.sector-description:hover {
+    border-color: rgba(0, 242, 255, 0.6);
+    transform: translateX(6px);
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0.65), rgba(0, 242, 255, 0.12));
+}
+
+.sector-description h4 {
+    color: #00f2ff;
+    margin-bottom: 15px;
+    font-size: 0.9rem;
+    letter-spacing: 2px;
+}
+
+.sector-description p {
+    font-size: 0.85rem;
+    line-height: 1.6;
+    color: #ddd;
+    margin-bottom: 15px;
+}
+
+.feature-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 15px;
+}
+
+.feature-tag {
+    background: linear-gradient(135deg, rgba(0, 242, 255, 0.2), rgba(255, 207, 0, 0.1));
+    padding: 6px 16px;
+    border-radius: 40px;
+    font-size: 0.75rem;
+    color: #00f2ff;
+    border: 1px solid rgba(0, 242, 255, 0.4);
+    transition: all 0.2s;
+}
+
+.feature-tag:hover {
+    transform: scale(1.05);
+    background: rgba(0, 242, 255, 0.3);
+    color: #fff;
+}
+
+/* ========== PERKS BOX ========== */
+.perks-box {
+    margin-top: 20px;
+    padding: 20px;
+    background: linear-gradient(135deg, rgba(255, 207, 0, 0.12), rgba(0, 242, 255, 0.06));
+    border-radius: 28px;
+    border-left: 5px solid #ffcf00;
+    transition: all 0.3s;
+}
+
+.perks-box:hover {
+    transform: translateX(6px);
+    background: linear-gradient(135deg, rgba(255, 207, 0, 0.18), rgba(0, 242, 255, 0.1));
+}
+
+.perks-box h4 {
+    color: #ffcf00;
+    margin-bottom: 16px;
+    font-size: 0.9rem;
+    letter-spacing: 2px;
+}
+
+.perks-box ul {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.perks-box li {
+    font-size: 0.78rem;
+    background: rgba(0, 0, 0, 0.55);
+    padding: 6px 16px;
+    border-radius: 40px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s;
+}
+
+.perks-box li:hover {
+    transform: scale(1.03);
+    background: rgba(0, 0, 0, 0.75);
+}
+
+.perks-box li::before {
+    content: "✨";
+    color: #ffcf00;
+}
+
+.perks-box.vip-special {
+    border-left-color: #ff00ff;
+    background: linear-gradient(135deg, rgba(255, 0, 255, 0.12), rgba(255, 207, 0, 0.06));
+}
+
+.perks-box.vip-special li::before {
+    content: "💎";
+}
+
+/* ========== FOOTER ========== */
+.footer-note {
+    margin-top: 30px;
+    padding-top: 20px;
+    text-align: center;
+    font-size: 0.65rem;
+    color: #666;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    letter-spacing: 1px;
+}
+
+/* ========== TOAST ========== */
+.toast {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    background: linear-gradient(90deg, #00f2ff, #0088aa);
+    color: #000;
+    padding: 14px 32px;
+    border-radius: 60px;
+    font-weight: bold;
+    font-family: 'Orbitron';
+    font-size: 0.85rem;
+    z-index: 200;
+    animation: slideInRight 0.4s ease;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+}
+
+@keyframes slideInRight {
+    from {
+        opacity: 0;
+        transform: translateX(120px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* ========== ANIMATION FADE IN ========== */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.selected-card, .price-area, .sector-description, .perks-box, .btn-select {
+    animation: fadeInUp 0.5s ease forwards;
+}
+
+.selected-card { animation-delay: 0.05s; }
+.price-area { animation-delay: 0.1s; }
+.sector-description { animation-delay: 0.15s; }
+.perks-box { animation-delay: 0.2s; }
+.btn-select { animation-delay: 0.25s; }

@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vé điện tử - Super Arena</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: radial-gradient(ellipse at 30% 20%, #0a0a1a, #010005);
+            font-family: 'Montserrat', sans-serif;
+            color: #fff;
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .ticket-card {
+            background: linear-gradient(135deg, #1a1a2e, #0a0a1a);
+            border-radius: 32px;
+            border: 1px solid rgba(0, 242, 255, 0.4);
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+            margin-bottom: 30px;
+        }
+
+        .ticket-header {
+            background: linear-gradient(135deg, #00f2ff, #0088aa);
+            padding: 25px;
+            text-align: center;
+        }
+
+        .ticket-header h1 {
+            font-family: 'Orbitron';
+            font-size: 1.8rem;
+            color: #000;
+            letter-spacing: 3px;
+        }
+
+        .ticket-header .sub {
+            color: #000;
+            opacity: 0.8;
+            margin-top: 5px;
+            font-size: 0.8rem;
+        }
+
+        .ticket-body {
+            padding: 30px;
+        }
+
+        .ticket-code {
+            background: rgba(0, 242, 255, 0.15);
+            border-radius: 20px;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 25px;
+            border: 1px dashed #00f2ff;
+        }
+
+        .ticket-code .label {
+            font-size: 0.7rem;
+            color: #00f2ff;
+            letter-spacing: 2px;
+        }
+
+        .ticket-code .code {
+            font-family: 'Orbitron';
+            font-size: 1.6rem;
+            font-weight: 800;
+            color: #ffcf00;
+            margin-top: 8px;
+            letter-spacing: 2px;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .info-label {
+            font-size: 0.8rem;
+            color: #aaa;
+        }
+
+        .info-value {
+            font-weight: 600;
+            color: #fff;
+        }
+
+        .seats-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 5px;
+        }
+
+        .seat-badge {
+            background: #00f2ff;
+            color: #000;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .total-price {
+            font-family: 'Orbitron';
+            font-size: 1.5rem;
+            color: #ffcf00;
+        }
+
+        .qr-section {
+            text-align: center;
+            margin: 25px 0;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+        }
+
+        .qr-placeholder {
+            width: 140px;
+            height: 140px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 10px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 14px 30px;
+            border: none;
+            border-radius: 50px;
+            font-family: 'Orbitron';
+            font-weight: 700;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .btn-pdf {
+            background: linear-gradient(90deg, #ff7a18, #ffb347);
+            color: #000;
+        }
+
+        .btn-home {
+            background: transparent;
+            border: 2px solid #00f2ff;
+            color: #00f2ff;
+        }
+
+        .btn:hover {
+            transform: scale(1.02);
+            box-shadow: 0 0 20px rgba(0, 242, 255, 0.4);
+        }
+
+        .footer-note {
+            text-align: center;
+            margin-top: 30px;
+            font-size: 0.7rem;
+            color: #666;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 50px;
+            font-size: 1.2rem;
+            color: #00f2ff;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container" id="ticketContainer">
+    <div class="loading">⏳ Đang tải thông tin vé...</div>
+</div>
+
+<script>
+    // ========== SUPABASE ==========
+    const supabaseUrl = 'https://ncpoptivxdkdvpotexfe.supabase.co';
+    const supabaseKey = 'sb_publishable_sL4M5eSOdVEsDsQEQ0iKQQ_m7gVLZ_-';
+    const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
+    console.log('✅ Supabase đã kết nối');
+
+    // ========== LẤY MÃ VÉ TỪ URL ==========
+    const urlParams = new URLSearchParams(window.location.search);
+    let ticketId = urlParams.get('id');
+    
+    if (!ticketId) {
+        const lastTicketId = localStorage.getItem('lastTicketId');
+        if (lastTicketId) {
+            ticketId = lastTicketId;
+        } else {
+            document.getElementById('ticketContainer').innerHTML = `
+                <div class="ticket-card">
+                    <div class="ticket-header">
+                        <h1>⚠️ KHÔNG TÌM THẤY VÉ</h1>
+                    </div>
+                    <div class="ticket-body" style="text-align:center; padding:40px;">
+                        <p>Không có mã vé để hiển thị.</p>
+                        <button class="btn btn-home" onclick="window.location.href='../1.1_Trang_chu_chinh/index.html'" style="margin-top:20px;">🏠 Về trang chủ</button>
+                    </div>
+                </div>
+            `;
+        }
+    }
+    
+    if (ticketId) {
+        renderTicket(ticketId);
+    }
+    
+    async function renderTicket(id) {
+        // ========== ƯU TIÊN ĐỌC TỪ SUPABASE ==========
+        let ticket = null;
+        
+        try {
+            const { data, error } = await supabaseClient
+                .from('bookings')
+                .select('*')
+                .eq('ticket_id', id)
+                .single();
+            
+            if (!error && data) {
+                // Chuyển đổi dữ liệu từ Supabase sang format giống localStorage
+                ticket = {
+                    ticketId: data.ticket_id,
+                    sectorId: data.sector_id,
+                    sectorName: data.sector_name,
+                    seats: data.seats || [],
+                    seatsNumber: data.seats_number || [],
+                    fullname: data.fullname,
+                    email: data.email,
+                    phone: data.phone,
+                    totalAmount: data.total_amount,
+                    bookingTime: data.booking_time,
+                    eventName: data.event_name || 'Super Concert 2026',
+                    idNumber: data.id_number || 'Chưa cập nhật'
+                };
+                console.log('✅ Đọc vé từ Supabase thành công');
+            }
+        } catch (err) {
+            console.warn('Lỗi đọc từ Supabase, fallback sang localStorage:', err);
+        }
+        
+        // ========== FALLBACK: ĐỌC TỪ LOCALSTORAGE ==========
+        if (!ticket) {
+            const allTickets = JSON.parse(localStorage.getItem('all_tickets')) || [];
+            ticket = allTickets.find(t => t.ticketId === id);
+        }
+        
+        if (!ticket) {
+            document.getElementById('ticketContainer').innerHTML = `
+                <div class="ticket-card">
+                    <div class="ticket-header">
+                        <h1>⚠️ KHÔNG TÌM THẤY VÉ</h1>
+                    </div>
+                    <div class="ticket-body" style="text-align:center; padding:40px;">
+                        <p>Mã vé <strong>${id}</strong> không tồn tại trong hệ thống.</p>
+                        <button class="btn btn-home" onclick="window.location.href='../1.1_Trang_chu_chinh/index.html'" style="margin-top:20px;">🏠 Về trang chủ</button>
+                    </div>
+                </div>
+            `;
+            return;
+        }
+        
+        const bookingDate = new Date(ticket.bookingTime);
+        const formattedDate = bookingDate.toLocaleString('vi-VN');
+        
+        const html = `
+            <div class="ticket-card" id="ticketContent">
+                <div class="ticket-header">
+                    <h1>⚡ SUPER ARENA</h1>
+                    <div class="sub">VÉ ĐIỆN TỬ - KHÔNG CÓ GIÁ TRỊ IN LẠI</div>
+                </div>
+                <div class="ticket-body">
+                    <div class="ticket-code">
+                        <div class="label">MÃ VÉ</div>
+                        <div class="code">${ticket.ticketId}</div>
+                    </div>
+                    
+                    <div class="info-row">
+                        <span class="info-label">🎫 SỰ KIỆN</span>
+                        <span class="info-value">${ticket.eventName || 'Super Concert 2026'}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">🏟️ KHU VỰC</span>
+                        <span class="info-value">${ticket.sectorName} (${ticket.sectorId})</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">🪑 GHẾ ĐÃ ĐẶT</span>
+                        <div class="seats-list">
+                            ${(ticket.seats || []).map(s => `<span class="seat-badge">${s}</span>`).join('')}
+                        </div>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">👤 HỌ TÊN</span>
+                        <span class="info-value">${ticket.fullname}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">📧 EMAIL</span>
+                        <span class="info-value">${ticket.email || 'Chưa cập nhật'}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">📞 SỐ ĐIỆN THOẠI</span>
+                        <span class="info-value">${ticket.phone || 'Chưa cập nhật'}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">⏰ THỜI GIAN ĐẶT</span>
+                        <span class="info-value">${formattedDate}</span>
+                    </div>
+                    <div class="info-row" style="border-bottom: none; margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.1);">
+                        <span class="info-label">💰 TỔNG TIỀN</span>
+                        <span class="info-value total-price">${ticket.totalAmount.toLocaleString()} VND</span>
+                    </div>
+                    
+                    <div class="qr-section">
+                        <div class="qr-placeholder" id="qrCode"></div>
+                        <div style="margin-top: 12px; font-size: 0.7rem; color: #aaa;">Quét mã để xác thực vé</div>
+                    </div>
+                </div>
+            </div>
+            <div class="button-group">
+                <button class="btn btn-pdf" id="downloadPdfBtn">📄 TẢI PDF VÉ</button>
+                <button class="btn btn-home" onclick="window.location.href='../1.1_Trang_chu_chinh/index.html'">🏠 QUAY VỀ TRANG CHỦ</button>
+            </div>
+            <div class="footer-note">
+                * Vui lòng xuất trình vé này (bản giấy hoặc điện tử) khi vào cổng.<br>
+                * Vé chỉ có giá trị cho đúng suất diễn đã đăng ký.
+            </div>
+        `;
+        
+        document.getElementById('ticketContainer').innerHTML = html;
+        
+        // Tạo QR code
+        const qrContainer = document.getElementById('qrCode');
+        if (qrContainer) {
+            new QRCode(qrContainer, {
+                text: ticket.ticketId,
+                width: 120,
+                height: 120,
+                colorDark: "#000000",
+                colorLight: "#ffffff",
+                correctLevel: QRCode.CorrectLevel.H
+            });
+        }
+        
+        // Sự kiện tải PDF
+        const downloadBtn = document.getElementById('downloadPdfBtn');
+        if (downloadBtn) {
+            downloadBtn.addEventListener('click', () => {
+                const element = document.getElementById('ticketContent');
+                const opt = {
+                    margin: [0.5, 0.5, 0.5, 0.5],
+                    filename: `Ve_SuperArena_${ticket.ticketId}.pdf`,
+                    image: { type: 'jpeg', quality: 0.98 },
+                    html2canvas: { scale: 2, backgroundColor: '#1a1a2e' },
+                    jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+                };
+                html2pdf().set(opt).from(element).save();
+            });
+        }
+    }
+</script>
+</body>
+</html>

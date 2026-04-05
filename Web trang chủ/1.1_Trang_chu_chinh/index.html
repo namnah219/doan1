@@ -1,0 +1,1149 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Super Arena | Đặt vé sân vận động 3D - Đỉnh cao công nghệ</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Montserrat:wght@200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: radial-gradient(ellipse at 30% 20%, #0a0a1a, #010005);
+            font-family: 'Montserrat', sans-serif;
+            color: #fff;
+            min-height: 100vh;
+            position: relative;
+        }
+
+        /* Animated background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 30%, rgba(0, 242, 255, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 80% 70%, rgba(255, 207, 0, 0.06) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        /* Floating particles */
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .particle {
+            position: absolute;
+            background: rgba(0, 242, 255, 0.3);
+            border-radius: 50%;
+            animation: float 8s infinite ease-in-out;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) translateX(0); opacity: 0.3; }
+            50% { transform: translateY(-50px) translateX(30px); opacity: 0.8; }
+        }
+
+        /* ========== HEADER ========== */
+        .header {
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(25px);
+            padding: 18px 60px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(0, 242, 255, 0.25);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            flex-wrap: wrap;
+            gap: 20px;
+            transition: all 0.3s;
+        }
+
+        .logo {
+            font-family: 'Orbitron';
+            font-size: 1.8rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, #ffffff, #00f2ff, #ffcf00, #ff00ff);
+            background-size: 300% 300%;
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            animation: gradientShift 5s ease infinite;
+            letter-spacing: 2px;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .nav {
+            display: flex;
+            align-items: center;
+            gap: 35px;
+            flex-wrap: wrap;
+        }
+
+        .nav a {
+            color: #fff;
+            text-decoration: none;
+            cursor: pointer;
+            transition: 0.3s;
+            font-weight: 500;
+            position: relative;
+        }
+
+        .nav a::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: linear-gradient(90deg, #00f2ff, #ffcf00);
+            transition: width 0.3s;
+        }
+
+        .nav a:hover::after {
+            width: 100%;
+        }
+
+        .nav a:hover {
+            color: #00f2ff;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            background: linear-gradient(135deg, rgba(0, 242, 255, 0.2), rgba(255, 207, 0, 0.1));
+            padding: 8px 22px;
+            border-radius: 60px;
+            border: 1px solid rgba(0, 242, 255, 0.4);
+            backdrop-filter: blur(10px);
+        }
+
+        .user-info i {
+            font-size: 1.2rem;
+            color: #ffcf00;
+        }
+
+        .user-info span {
+            font-weight: 600;
+        }
+
+        .logout-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: #ff5555;
+            cursor: pointer;
+            padding: 5px 15px;
+            border-radius: 30px;
+            transition: 0.3s;
+            font-weight: 500;
+        }
+
+        .logout-btn:hover {
+            background: rgba(255, 85, 85, 0.25);
+            transform: scale(1.02);
+        }
+
+        .login-btn, .register-btn {
+            background: linear-gradient(90deg, #00c9ff, #0066aa);
+            border: none;
+            padding: 10px 26px;
+            border-radius: 60px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: 'Montserrat';
+        }
+
+        .login-btn:hover, .register-btn:hover {
+            transform: scale(1.03);
+            box-shadow: 0 0 20px rgba(0, 201, 255, 0.6);
+        }
+
+        /* ========== HERO ========== */
+        .hero {
+            text-align: center;
+            padding: 100px 20px 80px;
+            position: relative;
+        }
+
+        .hero h1 {
+            font-family: 'Orbitron';
+            font-size: 3.8rem;
+            background: linear-gradient(135deg, #fff, #00f2ff, #ffcf00, #ff00ff);
+            background-size: 300% 300%;
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: 20px;
+            animation: gradientShift 5s ease infinite;
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            color: #ccc;
+            max-width: 700px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        /* Glow button */
+        .hero-glow {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(0, 242, 255, 0.15), transparent);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            filter: blur(60px);
+            pointer-events: none;
+        }
+
+        /* ========== SEARCH ========== */
+        .search-section {
+            max-width: 650px;
+            margin: 40px auto 0;
+            padding: 0 20px;
+        }
+
+        .search-box {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .search-box input {
+            flex: 1;
+            min-width: 280px;
+            padding: 16px 26px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(0, 242, 255, 0.3);
+            border-radius: 60px;
+            color: white;
+            font-size: 1rem;
+            transition: all 0.3s;
+            backdrop-filter: blur(10px);
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: #ffcf00;
+            background: rgba(255, 255, 255, 0.1);
+            box-shadow: 0 0 20px rgba(255, 207, 0, 0.2);
+        }
+
+        .search-box button {
+            padding: 16px 32px;
+            background: linear-gradient(90deg, #00c9ff, #0066aa);
+            border: none;
+            border-radius: 60px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.95rem;
+        }
+
+        .search-box button:last-child {
+            background: linear-gradient(90deg, #ff7a18, #ffb347);
+        }
+
+        .search-box button:hover {
+            transform: scale(1.03);
+            box-shadow: 0 0 25px rgba(0, 201, 255, 0.5);
+        }
+
+        .result-card {
+            margin-top: 30px;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(15px);
+            border-radius: 28px;
+            padding: 25px;
+            border: 1px solid rgba(0, 242, 255, 0.35);
+            transition: all 0.3s;
+        }
+
+        .result-card:hover {
+            border-color: #ffcf00;
+            box-shadow: 0 0 30px rgba(255, 207, 0, 0.1);
+        }
+
+        /* ========== SỰ KIỆN ========== */
+        .events {
+            padding: 80px 20px;
+            text-align: center;
+        }
+
+        .events h2 {
+            font-family: 'Orbitron';
+            font-size: 2.5rem;
+            color: #00f2ff;
+            margin-bottom: 15px;
+            text-shadow: 0 0 20px rgba(0, 242, 255, 0.3);
+        }
+
+        .events-sub {
+            color: #aaa;
+            margin-bottom: 60px;
+            font-size: 1rem;
+        }
+
+        .event-list {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            flex-wrap: wrap;
+        }
+
+        .card {
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.5), rgba(0, 242, 255, 0.08));
+            border-radius: 36px;
+            padding: 40px 30px;
+            width: 300px;
+            border: 1px solid rgba(0, 242, 255, 0.3);
+            transition: all 0.4s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 242, 255, 0.1), transparent);
+            transition: left 0.6s;
+        }
+
+        .card:hover::before {
+            left: 100%;
+        }
+
+        .card:hover {
+            transform: translateY(-15px);
+            border-color: #ffcf00;
+            box-shadow: 0 30px 50px rgba(0, 0, 0, 0.4);
+        }
+
+        .card h3 {
+            font-family: 'Orbitron';
+            font-size: 1.5rem;
+            color: #ffcf00;
+            margin-bottom: 18px;
+        }
+
+        .card p {
+            margin: 12px 0;
+            color: #ddd;
+            font-size: 0.95rem;
+        }
+
+        .card button {
+            margin-top: 30px;
+            padding: 14px;
+            width: 100%;
+            background: linear-gradient(90deg, #00c9ff, #0066aa);
+            border: none;
+            border-radius: 60px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .card button:hover {
+            transform: scale(1.02);
+            box-shadow: 0 0 18px rgba(0, 201, 255, 0.5);
+        }
+
+        /* ========== TÍNH NĂNG ========== */
+        .features {
+            padding: 80px 20px;
+            text-align: center;
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+        }
+
+        .features h2 {
+            font-family: 'Orbitron';
+            font-size: 2.3rem;
+            color: #ffcf00;
+            margin-bottom: 60px;
+            text-shadow: 0 0 15px rgba(255, 207, 0, 0.2);
+        }
+
+        .feature-list {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            flex-wrap: wrap;
+        }
+
+        .feature {
+            background: rgba(255, 255, 255, 0.03);
+            padding: 35px 25px;
+            border-radius: 32px;
+            width: 240px;
+            transition: all 0.3s;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .feature:hover {
+            transform: translateY(-8px);
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(0, 242, 255, 0.4);
+        }
+
+        .feature i {
+            font-size: 3rem;
+            color: #00f2ff;
+            margin-bottom: 20px;
+            transition: 0.3s;
+        }
+
+        .feature:hover i {
+            transform: scale(1.1);
+            text-shadow: 0 0 20px #00f2ff;
+        }
+
+        .feature h3 {
+            margin-bottom: 12px;
+            font-size: 1.2rem;
+        }
+
+        .feature p {
+            font-size: 0.85rem;
+            color: #bbb;
+        }
+
+        /* ========== MODAL ========== */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.97);
+            backdrop-filter: blur(30px);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal.active {
+            display: flex;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; backdrop-filter: blur(0); }
+            to { opacity: 1; backdrop-filter: blur(30px); }
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, #1a1a2e, #0a0a1a);
+            border-radius: 48px;
+            padding: 50px;
+            width: 500px;
+            max-width: 90%;
+            border: 2px solid #00f2ff;
+            box-shadow: 0 0 80px rgba(0, 242, 255, 0.4);
+            animation: modalPop 0.4s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+        }
+
+        @keyframes modalPop {
+            from { transform: scale(0.9); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .modal-content h2 {
+            font-family: 'Orbitron';
+            color: #00f2ff;
+            text-align: center;
+            margin-bottom: 35px;
+            font-size: 1.8rem;
+        }
+
+        .modal-content input {
+            width: 100%;
+            padding: 16px;
+            margin: 12px 0;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(0, 242, 255, 0.4);
+            border-radius: 20px;
+            color: white;
+            font-size: 1rem;
+            transition: 0.3s;
+        }
+
+        .modal-content input:focus {
+            outline: none;
+            border-color: #ffcf00;
+            background: rgba(255, 255, 255, 0.12);
+        }
+
+        .error-input {
+            border-color: #ff5555 !important;
+        }
+
+        .error-text {
+            color: #ff5555;
+            font-size: 0.7rem;
+            margin-top: -8px;
+            margin-bottom: 5px;
+            display: block;
+        }
+
+        .success-text {
+            color: #00ff88;
+            font-size: 0.7rem;
+            margin-top: -8px;
+            margin-bottom: 5px;
+            display: block;
+        }
+
+        .password-strength {
+            margin: 8px 0 12px;
+        }
+
+        .strength-bar {
+            height: 6px;
+            background: #333;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .strength-fill {
+            width: 0%;
+            height: 100%;
+            transition: 0.3s;
+        }
+
+        .strength-text {
+            font-size: 0.7rem;
+            margin-top: 5px;
+        }
+
+        .remember-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 15px 0;
+        }
+
+        .remember-row input {
+            width: 18px;
+            height: 18px;
+            margin: 0;
+            cursor: pointer;
+        }
+
+        .remember-row label {
+            color: #aaa;
+            font-size: 0.85rem;
+            cursor: pointer;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 18px;
+            margin-top: 35px;
+        }
+
+        .modal-buttons button {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            border-radius: 60px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.3s;
+            font-size: 1rem;
+        }
+
+        .btn-submit {
+            background: linear-gradient(90deg, #ff7a18, #ffb347);
+            color: #000;
+        }
+
+        .btn-cancel {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+        }
+
+        .btn-submit:hover, .btn-cancel:hover {
+            transform: scale(1.02);
+        }
+
+        .switch-modal {
+            text-align: center;
+            margin-top: 28px;
+            font-size: 0.85rem;
+        }
+
+        .switch-modal a {
+            color: #00f2ff;
+            cursor: pointer;
+            text-decoration: underline;
+        }
+
+        footer {
+            text-align: center;
+            padding: 40px;
+            font-size: 0.75rem;
+            color: #666;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: linear-gradient(90deg, #00f2ff, #0088aa);
+            color: #000;
+            padding: 14px 32px;
+            border-radius: 60px;
+            font-weight: bold;
+            z-index: 200;
+            animation: slideIn 0.4s ease;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+            font-family: 'Orbitron';
+            font-size: 0.85rem;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(120px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        @media (max-width: 768px) {
+            .header { padding: 15px 25px; justify-content: center; text-align: center; }
+            .hero h1 { font-size: 2rem; }
+            .hero { padding: 60px 20px; }
+            .modal-content { padding: 35px; }
+            .card { width: 260px; padding: 30px 20px; }
+            .feature { width: 200px; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Floating particles -->
+<div class="particles" id="particles"></div>
+
+<div class="header">
+    <div class="logo">⚡ SUPER ARENA</div>
+    <div class="nav">
+        <a onclick="scrollToSection('events')">Sự kiện</a>
+        <a onclick="scrollToSection('features')">Tính năng</a>
+        <div id="authButtons">
+            <button class="login-btn" onclick="openLoginModal()">Đăng nhập</button>
+            <button class="register-btn" onclick="openRegisterModal()">Đăng ký</button>
+        </div>
+        <div id="userDisplay" style="display: none;" class="user-info">
+            <i class="fas fa-user-astronaut"></i>
+            <span id="userName"></span>
+            <button class="logout-btn" onclick="logout()">Đăng xuất</button>
+        </div>
+    </div>
+</div>
+
+<section class="hero">
+    <div class="hero-glow"></div>
+    <h1>🎫 Hệ thống đặt vé thông minh</h1>
+    <p>Đặt vé nhanh chóng – tiện lợi – chính xác | Công nghệ Mutex - Đồng bộ thời gian thực</p>
+
+    <div class="search-section">
+        <div class="search-box">
+            <input type="text" id="searchID" placeholder="Nhập mã vé (VD: TIX...)">
+            <button onclick="searchTicket()"><i class="fas fa-search"></i> Tìm kiếm</button>
+            <button onclick="viewAllTickets()"><i class="fas fa-ticket-alt"></i> Vé của tôi</button>
+        </div>
+        <div id="result"></div>
+    </div>
+</section>
+
+<section class="events" id="events">
+    <h2>🎤 SỰ KIỆN NỔI BẬT</h2>
+    <p class="events-sub">Trải nghiệm âm nhạc đỉnh cao cùng những nghệ sĩ hàng đầu</p>
+    <div class="event-list">
+        <div class="card" onclick="goToStadium('SonTung')">
+            <h3>🎤 Concert Sơn Tùng MTP</h3>
+            <p>📅 20/04/2026 | 20:00</p>
+            <p>📍 SVĐ Quốc Gia</p>
+            <button>🎟️ Đặt vé ngay</button>
+        </div>
+        <div class="card" onclick="goToStadium('RapViet')">
+            <h3>🎧 Rap Việt - Chung kết</h3>
+            <p>📅 25/04/2026 | 19:30</p>
+            <p>📍 SVĐ Hàng Đẫy</p>
+            <button>🎟️ Đặt vé ngay</button>
+        </div>
+        <div class="card" onclick="goToStadium('EDM')">
+            <h3>🎵 EDM Festival 2026</h3>
+            <p>📅 30/04/2026 | 18:00</p>
+            <p>📍 SVĐ Mỹ Đình</p>
+            <button>🎟️ Đặt vé ngay</button>
+        </div>
+    </div>
+</section>
+
+<section class="features" id="features">
+    <h2>✨ TẠI SAO CHỌN CHÚNG TÔI?</h2>
+    <div class="feature-list">
+        <div class="feature"><i class="fas fa-bolt"></i><h3>Siêu nhanh</h3><p>Đặt vé trong vài giây, xác nhận ngay lập tức</p></div>
+        <div class="feature"><i class="fas fa-shield-alt"></i><h3>Mutex Lock</h3><p>Công nghệ đồng bộ, không lo 1 ghế 2 người</p></div>
+        <div class="feature"><i class="fas fa-mobile-alt"></i><h3>Tiện lợi</h3><p>Tra cứu vé, xuất PDF, dùng mọi thiết bị</p></div>
+        <div class="feature"><i class="fas fa-chart-line"></i><h3>Realtime</h3><p>Cập nhật số ghế trống theo thời gian thực</p></div>
+    </div>
+</section>
+
+<footer>
+    <p>© 2026 - Hệ thống đặt vé thông minh | Công nghệ Critical Section & Mutex</p>
+    <p style="margin-top: 10px;">🔒 Bảo mật tuyệt đối | Hỗ trợ 24/7 | 🎫 Hệ thống chính thức</p>
+</footer>
+
+<!-- MODAL ĐĂNG NHẬP -->
+<div id="loginModal" class="modal">
+    <div class="modal-content">
+        <h2>🔐 ĐĂNG NHẬP</h2>
+        <input type="text" id="loginUsername" placeholder="Tên đăng nhập">
+        <input type="password" id="loginPassword" placeholder="Mật khẩu">
+        <div class="remember-row">
+            <input type="checkbox" id="rememberMe">
+            <label for="rememberMe">Ghi nhớ đăng nhập</label>
+        </div>
+        <div class="modal-buttons">
+            <button class="btn-submit" onclick="login()">ĐĂNG NHẬP</button>
+            <button class="btn-cancel" onclick="closeModal('loginModal')">HỦY</button>
+        </div>
+        <div class="switch-modal">Chưa có tài khoản? <a onclick="switchToRegister()">Đăng ký ngay</a></div>
+    </div>
+</div>
+
+<!-- MODAL ĐĂNG KÝ -->
+<div id="registerModal" class="modal">
+    <div class="modal-content">
+        <h2>📝 ĐĂNG KÝ</h2>
+        <input type="text" id="regFullname" placeholder="Họ và tên *">
+        <input type="number" id="regBirthYear" placeholder="Năm sinh (1900-2026) *" min="1900" max="2026" step="1" oninput="validateBirthYear()">
+        <span id="birthYearError" class="error-text" style="display: none;"></span>
+        <input type="text" id="regUsername" placeholder="Tên đăng nhập (dưới 18 ký tự) *" maxlength="17" oninput="checkUsernameExists()">
+        <span id="usernameError" class="error-text" style="display: none;"></span>
+        <span id="usernameSuccess" class="success-text" style="display: none;"></span>
+        <input type="tel" id="regPhone" placeholder="Số điện thoại (10 số) *" maxlength="10" oninput="validatePhone()">
+        <span id="phoneError" class="error-text" style="display: none;"></span>
+        <input type="email" id="regEmail" placeholder="Email *" oninput="clearEmailError()">
+        <span id="emailError" class="error-text" style="display: none;"></span>
+        <input type="password" id="regPassword" placeholder="Mật khẩu *" onkeyup="checkPasswordStrength()">
+        <div class="password-strength">
+            <div class="strength-bar"><div class="strength-fill" id="strengthFill"></div></div>
+            <div class="strength-text" id="strengthText"></div>
+        </div>
+        <div class="modal-buttons">
+            <button class="btn-submit" onclick="register()">ĐĂNG KÝ</button>
+            <button class="btn-cancel" onclick="closeModal('registerModal')">HỦY</button>
+        </div>
+        <div class="switch-modal">Đã có tài khoản? <a onclick="switchToLogin()">Đăng nhập ngay</a></div>
+    </div>
+</div>
+
+<script>
+    // ========== SUPABASE ==========
+    const supabaseUrl = 'https://ncpoptivxdkdvpotexfe.supabase.co';
+    const supabaseKey = 'sb_publishable_sL4M5eSOdVEsDsQEQ0iKQQ_m7gVLZ_-';
+    const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
+    console.log('✅ Supabase đã kết nối');
+
+    // ========== PARTICLES ==========
+    function createParticles() {
+        const container = document.getElementById('particles');
+        for (let i = 0; i < 50; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'particle';
+            const size = Math.random() * 4 + 2;
+            particle.style.width = size + 'px';
+            particle.style.height = size + 'px';
+            particle.style.left = Math.random() * 100 + '%';
+            particle.style.top = Math.random() * 100 + '%';
+            particle.style.animationDelay = Math.random() * 8 + 's';
+            particle.style.animationDuration = 6 + Math.random() * 6 + 's';
+            container.appendChild(particle);
+        }
+    }
+    createParticles();
+
+    // ========== KIỂM TRA ĐĂNG NHẬP ==========
+    function checkLoginStatus() {
+        const user = JSON.parse(localStorage.getItem('current_user'));
+        if (user && user.username) {
+            document.getElementById('authButtons').style.display = 'none';
+            document.getElementById('userDisplay').style.display = 'flex';
+            document.getElementById('userName').innerText = user.fullname || user.username;
+        }
+    }
+
+    // ========== VALIDATE ==========
+    function validateBirthYear() {
+        const input = document.getElementById('regBirthYear');
+        const errorSpan = document.getElementById('birthYearError');
+        const year = parseInt(input.value);
+        if (input.value === "") {
+            errorSpan.style.display = 'none';
+            input.classList.remove('error-input');
+            return true;
+        }
+        if (isNaN(year) || year < 1900 || year > 2026) {
+            errorSpan.innerText = '⚠️ Năm sinh phải từ 1900 đến 2026!';
+            errorSpan.style.display = 'block';
+            input.classList.add('error-input');
+            return false;
+        } else {
+            errorSpan.style.display = 'none';
+            input.classList.remove('error-input');
+            return true;
+        }
+    }
+
+    function validatePhone() {
+        const input = document.getElementById('regPhone');
+        const errorSpan = document.getElementById('phoneError');
+        let phone = input.value;
+        phone = phone.replace(/[^0-9]/g, '');
+        if (phone.length > 10) phone = phone.slice(0, 10);
+        input.value = phone;
+        if (phone === "") {
+            errorSpan.style.display = 'none';
+            input.classList.remove('error-input');
+            return true;
+        }
+        if (phone.length !== 10) {
+            errorSpan.innerText = '⚠️ Số điện thoại phải đúng 10 chữ số!';
+            errorSpan.style.display = 'block';
+            input.classList.add('error-input');
+            return false;
+        } else {
+            errorSpan.style.display = 'none';
+            input.classList.remove('error-input');
+            return true;
+        }
+    }
+
+    function validateEmail() {
+        const email = document.getElementById('regEmail').value.trim();
+        const errorSpan = document.getElementById('emailError');
+        if (email === "") {
+            errorSpan.style.display = 'none';
+            return true;
+        }
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            errorSpan.innerText = '⚠️ Email không hợp lệ!';
+            errorSpan.style.display = 'block';
+            return false;
+        } else {
+            errorSpan.style.display = 'none';
+            return true;
+        }
+    }
+
+    function clearEmailError() {
+        document.getElementById('emailError').style.display = 'none';
+    }
+
+    async function checkUsernameExists() {
+        const username = document.getElementById('regUsername').value.trim();
+        const errorSpan = document.getElementById('usernameError');
+        const successSpan = document.getElementById('usernameSuccess');
+        if (username === "") {
+            errorSpan.style.display = 'none';
+            successSpan.style.display = 'none';
+            document.getElementById('regUsername').classList.remove('error-input');
+            return false;
+        }
+        if (username.length >= 18) {
+            errorSpan.innerText = '⚠️ Tên đăng nhập phải dưới 18 ký tự!';
+            errorSpan.style.display = 'block';
+            successSpan.style.display = 'none';
+            document.getElementById('regUsername').classList.add('error-input');
+            return true;
+        }
+        const { data } = await supabaseClient.from('users').select('username').eq('username', username);
+        if (data && data.length > 0) {
+            errorSpan.innerText = '❌ Tên đăng nhập đã tồn tại!';
+            errorSpan.style.display = 'block';
+            successSpan.style.display = 'none';
+            document.getElementById('regUsername').classList.add('error-input');
+            return true;
+        } else {
+            errorSpan.style.display = 'none';
+            successSpan.innerText = '✅ Tên đăng nhập khả dụng';
+            successSpan.style.display = 'block';
+            document.getElementById('regUsername').classList.remove('error-input');
+            return false;
+        }
+    }
+
+    async function checkPhoneExists() {
+        const phone = document.getElementById('regPhone').value.trim();
+        const errorSpan = document.getElementById('phoneError');
+        if (phone === "" || phone.length !== 10) return false;
+        const { data } = await supabaseClient.from('users').select('phone').eq('phone', phone);
+        if (data && data.length > 0) {
+            errorSpan.innerText = '❌ Số điện thoại đã được đăng ký!';
+            errorSpan.style.display = 'block';
+            document.getElementById('regPhone').classList.add('error-input');
+            return true;
+        } else {
+            if (phone.length === 10 && errorSpan.innerText !== '⚠️ Số điện thoại phải đúng 10 chữ số!') {
+                errorSpan.style.display = 'none';
+            }
+            document.getElementById('regPhone').classList.remove('error-input');
+            return false;
+        }
+    }
+
+    function isStrongPassword(password) {
+        return password.length >= 8 && /[A-Z]/.test(password) && /[a-z]/.test(password) && /[0-9]/.test(password) && /[!@#$%^&*(),.?":{}|<>]/.test(password);
+    }
+
+    function getPasswordStrength(password) {
+        if (!password) return 0;
+        let strength = 0;
+        if (password.length >= 8) strength++;
+        if (/[A-Z]/.test(password)) strength++;
+        if (/[a-z]/.test(password)) strength++;
+        if (/[0-9]/.test(password)) strength++;
+        if (/[!@#$%^&*(),.?":{}|<>]/.test(password)) strength++;
+        return strength;
+    }
+
+    function checkPasswordStrength() {
+        const password = document.getElementById('regPassword').value;
+        const strength = getPasswordStrength(password);
+        const fill = document.getElementById('strengthFill');
+        const text = document.getElementById('strengthText');
+        if (password === "") { fill.style.width = "0%"; text.innerText = ""; return; }
+        if (strength <= 2) { fill.style.width = "33%"; fill.style.background = "#ff5555"; text.innerText = "⚠️ Mật khẩu yếu"; }
+        else if (strength <= 4) { fill.style.width = "66%"; fill.style.background = "#ffcf00"; text.innerText = "⚠️ Mật khẩu trung bình"; }
+        else { fill.style.width = "100%"; fill.style.background = "#00ff88"; text.innerText = "✅ Mật khẩu mạnh"; }
+    }
+
+    // ========== AUTH ==========
+    async function login() {
+        const username = document.getElementById('loginUsername').value.trim();
+        const password = document.getElementById('loginPassword').value.trim();
+        const rememberMe = document.getElementById('rememberMe').checked;
+        if (!username || !password) { showToast('⚠️ Vui lòng nhập đầy đủ thông tin!'); return; }
+        const { data } = await supabaseClient.from('users').select('*').eq('username', username).eq('password', password);
+        if (data && data.length > 0) {
+            const user = data[0];
+            // LƯU ĐẦY ĐỦ THÔNG TIN (bao gồm email và phone)
+            const userData = { 
+                id: user.id, 
+                username: user.username, 
+                fullname: user.fullname, 
+                email: user.email || '',
+                phone: user.phone || '',
+                total_bookings: user.total_bookings 
+            };
+            localStorage.setItem('current_user', JSON.stringify(userData));
+            if (rememberMe) {
+                localStorage.setItem('saved_username', username);
+                localStorage.setItem('saved_password', password);
+            } else {
+                localStorage.removeItem('saved_username');
+                localStorage.removeItem('saved_password');
+            }
+            closeModal('loginModal');
+            showToast(`✅ Chào mừng ${user.fullname || user.username}!`);
+            checkLoginStatus();
+            document.getElementById('loginUsername').value = '';
+            document.getElementById('loginPassword').value = '';
+            document.getElementById('rememberMe').checked = false;
+        } else { showToast('❌ Sai tên đăng nhập hoặc mật khẩu!'); }
+    }
+
+    async function register() {
+        const fullname = document.getElementById('regFullname').value.trim();
+        const birthYear = document.getElementById('regBirthYear').value;
+        const username = document.getElementById('regUsername').value.trim();
+        const phone = document.getElementById('regPhone').value.trim();
+        const email = document.getElementById('regEmail').value.trim();
+        const password = document.getElementById('regPassword').value;
+
+        let hasError = false;
+        if (!fullname) { showToast('⚠️ Vui lòng nhập họ và tên!'); hasError = true; }
+        if (!validateBirthYear()) hasError = true;
+        if (!username) { showToast('⚠️ Vui lòng nhập tên đăng nhập!'); hasError = true; }
+        else if (username.length >= 18) { showToast('⚠️ Tên đăng nhập phải dưới 18 ký tự!'); hasError = true; }
+        else { if (await checkUsernameExists()) hasError = true; }
+        if (!validatePhone()) hasError = true;
+        else { if (await checkPhoneExists()) hasError = true; }
+        if (!email) { showToast('⚠️ Vui lòng nhập email!'); hasError = true; }
+        else if (!validateEmail()) hasError = true;
+        if (!password) { showToast('⚠️ Vui lòng nhập mật khẩu!'); hasError = true; }
+        else if (!isStrongPassword(password)) { showToast('⚠️ Mật khẩu phải có ít nhất 8 ký tự, gồm: 1 chữ hoa, 1 chữ thường, 1 số, 1 ký tự đặc biệt!'); hasError = true; }
+        if (hasError) return;
+
+        const { error } = await supabaseClient.from('users').insert([{ 
+            username, 
+            password, 
+            fullname, 
+            birth_year: parseInt(birthYear), 
+            phone, 
+            email,
+            total_bookings: 0 
+        }]);
+        if (error) { 
+            showToast('❌ Đăng ký thất bại!'); 
+            console.error(error);
+        } else {
+            showToast('✅ Đăng ký thành công! Vui lòng đăng nhập.');
+            closeModal('registerModal');
+            document.getElementById('regFullname').value = '';
+            document.getElementById('regBirthYear').value = '';
+            document.getElementById('regUsername').value = '';
+            document.getElementById('regPhone').value = '';
+            document.getElementById('regEmail').value = '';
+            document.getElementById('regPassword').value = '';
+            document.getElementById('strengthFill').style.width = '0%';
+            document.getElementById('strengthText').innerText = '';
+            document.getElementById('usernameError').style.display = 'none';
+            document.getElementById('usernameSuccess').style.display = 'none';
+            document.getElementById('phoneError').style.display = 'none';
+            document.getElementById('emailError').style.display = 'none';
+            openLoginModal();
+        }
+    }
+
+    function logout() {
+        localStorage.removeItem('current_user');
+        document.getElementById('authButtons').style.display = 'flex';
+        document.getElementById('userDisplay').style.display = 'none';
+        showToast('🔓 Đã đăng xuất!');
+    }
+
+    // ========== MODAL ==========
+    function openLoginModal() {
+        const savedUsername = localStorage.getItem('saved_username');
+        const savedPassword = localStorage.getItem('saved_password');
+        if (savedUsername) {
+            document.getElementById('loginUsername').value = savedUsername;
+            document.getElementById('loginPassword').value = savedPassword;
+            document.getElementById('rememberMe').checked = true;
+        }
+        document.getElementById('loginModal').classList.add('active');
+    }
+
+    function openRegisterModal() { document.getElementById('registerModal').classList.add('active'); }
+    function closeModal(modalId) { document.getElementById(modalId).classList.remove('active'); }
+    function switchToRegister() { closeModal('loginModal'); openRegisterModal(); }
+    function switchToLogin() { closeModal('registerModal'); openLoginModal(); }
+
+    // ========== TRA CỨU VÉ ==========
+    async function searchTicket() {
+        const id = document.getElementById('searchID').value.trim();
+        const resultDiv = document.getElementById('result');
+        if (id === "") { resultDiv.innerHTML = "<div class='result-card' style='color:#ffd369;'>⚠️ Vui lòng nhập mã vé!</div>"; return; }
+        // Lấy từ localStorage vì ticket chưa lên Supabase
+        const allTickets = JSON.parse(localStorage.getItem('all_tickets')) || [];
+        const ticket = allTickets.find(t => t.ticketId === id);
+        if (!ticket) {
+            resultDiv.innerHTML = `<div class='result-card' style='color:#ff9999;'>❌ Không tìm thấy vé! Mã "${id}" không tồn tại.</div>`;
+            return;
+        }
+        resultDiv.innerHTML = `
+            <div class="result-card">
+                <div style="color:#00ff88; margin-bottom:10px;"><i class="fas fa-check-circle"></i> TÌM THẤY VÉ</div>
+                <div style="margin:8px 0"><strong>Mã vé:</strong> ${ticket.ticketId}</div>
+                <div style="margin:8px 0"><strong>Người đặt:</strong> ${ticket.fullname}</div>
+                <div style="margin:8px 0"><strong>Khu vực:</strong> ${ticket.sectorName}</div>
+                <div style="margin:8px 0"><strong>Ghế:</strong> ${ticket.seats.join(', ')}</div>
+                <div style="margin:8px 0"><strong>Tổng tiền:</strong> ${ticket.totalAmount.toLocaleString()} VND</div>
+                <button onclick="window.location.href='../1.4_Hien_ID/ticket.html?id=${ticket.ticketId}'" style="margin-top:15px; background:#00c9ff; color:#000; padding:10px 25px; border:none; border-radius:40px; cursor:pointer; font-weight:bold;">🎟️ Xem vé chi tiết</button>
+            </div>
+        `;
+    }
+
+    async function viewAllTickets() {
+        const resultDiv = document.getElementById('result');
+        const user = JSON.parse(localStorage.getItem('current_user'));
+        if (!user) { resultDiv.innerHTML = "<div class='result-card' style='color:#ffd369;'>⚠️ Vui lòng đăng nhập để xem vé của bạn!</div>"; return; }
+        const allTickets = JSON.parse(localStorage.getItem('all_tickets')) || [];
+        const myTickets = allTickets.filter(t => t.fullname === user.fullname || t.phone === user.phone);
+        if (myTickets.length === 0) {
+            resultDiv.innerHTML = "<div class='result-card' style='color:#ffd369;'><i class='fas fa-ticket-alt'></i> Bạn chưa có vé nào.</div>";
+            return;
+        }
+        resultDiv.innerHTML = `<div class="result-card"><div style="color:#00f2ff; margin-bottom:15px; font-size:1.1rem;"><i class="fas fa-list"></i> DANH SÁCH VÉ CỦA BẠN (${myTickets.length} vé)</div>` +
+            myTickets.map(t => `<div style="margin-bottom:15px; padding-bottom:12px; border-bottom:1px solid rgba(255,255,255,0.1);">
+                <div><strong>🎫 ${t.ticketId}</strong> - ${t.sectorName} - ${t.seats.length} ghế</div>
+                <div style="font-size:0.75rem; color:#aaa; margin:5px 0;">📅 ${new Date(t.bookingTime).toLocaleString('vi-VN')}</div>
+                <button onclick="window.location.href='../1.4_Hien_ID/ticket.html?id=${t.ticketId}'" style="margin-top:8px; background:#00c9ff; color:#000; padding:6px 18px; border:none; border-radius:25px; cursor:pointer;">Xem vé</button>
+            </div>`).join('') + `</div>`;
+    }
+
+    // ========== UTILS ==========
+    function showToast(msg) {
+        let t = document.createElement('div');
+        t.className = 'toast';
+        t.innerText = msg;
+        document.body.appendChild(t);
+        setTimeout(() => t.remove(), 2500);
+    }
+
+    function scrollToSection(sectionId) {
+        document.getElementById(sectionId).scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function goToStadium(eventName) {
+        const user = JSON.parse(localStorage.getItem('current_user'));
+        if (!user) {
+            showToast('⚠️ Vui lòng đăng nhập để đặt vé!');
+            openLoginModal();
+            return;
+        }
+        localStorage.setItem('selectedEvent', eventName);
+        window.location.href = '../1.2_San_van_dong/stadium.html';
+    }
+
+    checkLoginStatus();
+    window.addEventListener('click', (e) => {
+        if (e.target.classList.contains('modal')) e.target.classList.remove('active');
+    });
+</script>
+</body>
+</html>
