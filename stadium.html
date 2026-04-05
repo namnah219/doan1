@@ -75,7 +75,6 @@
         .info-panel::-webkit-scrollbar-track { background: #0a0a1a; border-radius: 10px; }
         .info-panel::-webkit-scrollbar-thumb { background: linear-gradient(180deg, #00f2ff, #ffcf00); border-radius: 10px; }
         
-        /* Nút quay lại trang chủ */
         .back-home-btn {
             display: inline-block;
             margin-bottom: 20px;
@@ -124,6 +123,27 @@
         }
         @keyframes gradientShift { 0%{background-position:0% 50%;} 50%{background-position:100% 50%;} 100%{background-position:0% 50%;} }
         .logo-sub { font-size: 0.75rem; color: #aaa; margin-top: 10px; letter-spacing: 2px; }
+        
+        /* Event title */
+        .event-title {
+            background: linear-gradient(135deg, rgba(0, 242, 255, 0.2), rgba(255, 207, 0, 0.1));
+            border-radius: 40px;
+            padding: 12px 20px;
+            text-align: center;
+            margin-bottom: 20px;
+            border: 1px solid rgba(0, 242, 255, 0.3);
+        }
+        .event-title span {
+            font-family: 'Orbitron';
+            font-size: 1rem;
+            color: #ffcf00;
+        }
+        .event-title h3 {
+            font-family: 'Orbitron';
+            font-size: 1.2rem;
+            margin-top: 5px;
+        }
+        
         .selected-card {
             background: linear-gradient(135deg, rgba(0, 242, 255, 0.15), rgba(255, 207, 0, 0.08));
             border-radius: 36px;
@@ -359,8 +379,13 @@
     </div>
 
     <div class="info-panel">
-        <!-- Nút quay lại trang chủ -->
         <a href="./index.html" class="back-home-btn">← Quay lại trang chủ</a>
+        
+        <!-- HIỂN THỊ TÊN SỰ KIỆN -->
+        <div class="event-title" id="eventTitle">
+            <span>🎫 SỰ KIỆN</span>
+            <h3 id="eventNameDisplay">Đang tải...</h3>
+        </div>
         
         <div class="logo-area">
             <div class="logo">⚡ SUPER ARENA</div>
@@ -406,6 +431,34 @@
 </div>
 
 <script>
+    // ========== LẤY EVENT ID TỪ URL ==========
+    const urlParams = new URLSearchParams(window.location.search);
+    let eventId = urlParams.get('event');
+    
+    // Nếu không có trong URL, thử đọc từ localStorage
+    if (!eventId) {
+        eventId = localStorage.getItem('eventId');
+    }
+    
+    // Map eventId sang tên hiển thị và tên bảng
+    const eventInfo = {
+        'SonTung': { name: '🎤 Concert Sơn Tùng MTP', tableSeats: 'sontung_seats', tableBookings: 'sontung_bookings' },
+        'RapViet': { name: '🎧 Rap Việt - Chung kết', tableSeats: 'rapviet_seats', tableBookings: 'rapviet_bookings' },
+        'EDM': { name: '🎵 EDM Festival 2026', tableSeats: 'edm_seats', tableBookings: 'edm_bookings' }
+    };
+    
+    if (!eventId || !eventInfo[eventId]) {
+        alert('Không xác định được sự kiện! Quay lại trang chủ.');
+        window.location.href = './index.html';
+    }
+    
+    // Hiển thị tên sự kiện
+    document.getElementById('eventNameDisplay').innerText = eventInfo[eventId].name;
+    
+    // Lưu lại eventId để dùng cho các file khác
+    localStorage.setItem('eventId', eventId);
+    localStorage.setItem('selectedEvent', eventId);
+    
     // ========== SUPABASE ==========
     const supabaseUrl = 'https://ncpoptivxdkdvpotexfe.supabase.co';
     const supabaseKey = 'sb_publishable_sL4M5eSOdVEsDsQEQ0iKQQ_m7gVLZ_-';
@@ -443,8 +496,9 @@
         }
         
         try {
+            // Đọc từ bảng seats của sự kiện hiện tại
             const { count, error } = await supabaseClient
-                .from('seats')
+                .from(eventInfo[eventId].tableSeats)
                 .select('*', { count: 'exact', head: true })
                 .eq('sector_id', sectorId)
                 .eq('status', 'available');
@@ -510,11 +564,11 @@
         });
     });
     
-    // Nút chọn ghế
+    // Nút chọn ghế - chuyển sang seat.html kèm eventId và sectorId
     document.getElementById('selectBtn').onclick = () => {
         if (currentSectorId) {
             localStorage.setItem('selected_sector', currentSectorId);
-            window.location.href = `./seat.html?sector=${currentSectorId}`;
+            window.location.href = `./seat.html?sector=${currentSectorId}&event=${eventId}`;
         } else {
             alert('Vui lòng chọn một khu vực trên sân!');
         }

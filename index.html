@@ -1133,31 +1133,66 @@
     function switchToLogin() { closeModal('registerModal'); openLoginModal(); }
 
     async function searchTicket() {
-        const id = document.getElementById('searchID').value.trim();
-        const resultDiv = document.getElementById('result');
-        if (id === "") { 
-            resultDiv.innerHTML = "";
-            return; 
-        }
-        const allTickets = JSON.parse(localStorage.getItem('all_tickets')) || [];
-        const ticket = allTickets.find(t => t.ticketId === id);
-        if (!ticket) {
-            resultDiv.innerHTML = `<div class='result-card' style='color:#ff9999;'><i class="fas fa-exclamation-circle"></i> ❌ Không tìm thấy vé! Mã "${id}" không tồn tại.</div>`;
+    const id = document.getElementById('searchID').value.trim();
+    const resultDiv = document.getElementById('result');
+    
+    if (id === "") {
+        resultDiv.innerHTML = "<div class='result-card' style='color:#ffd369;'>⚠️ Vui lòng nhập mã vé!</div>";
+        return;
+    }
+    
+    // Tìm trong localStorage trước
+    const allTickets = JSON.parse(localStorage.getItem('all_tickets')) || [];
+    let ticket = allTickets.find(t => t.ticketId === id);
+    
+    if (ticket) {
+        displayTicketResult(ticket);
+        return;
+    }
+    
+    // Tìm trong 3 bảng Supabase
+    const tables = ['sontung_bookings', 'rapviet_bookings', 'edm_bookings'];
+    
+    for (const table of tables) {
+        const { data, error } = await supabaseClient
+            .from(table)
+            .select('*')
+            .eq('ticket_id', id)
+            .single();
+        
+        if (!error && data) {
+            ticket = {
+                ticketId: data.ticket_id,
+                sectorName: data.sector_name,
+                seats: data.seats,
+                fullname: data.fullname,
+                totalAmount: data.total_amount,
+                bookingTime: data.booking_time,
+                eventName: data.event_name
+            };
+            displayTicketResult(ticket);
             return;
         }
-        resultDiv.innerHTML = `
-            <div class="result-card">
-                <div style="color:#00ff88; margin-bottom:10px;"><i class="fas fa-check-circle"></i> TÌM THẤY VÉ</div>
-                <div style="margin:8px 0"><strong>Mã vé:</strong> ${ticket.ticketId}</div>
-                <div style="margin:8px 0"><strong>Người đặt:</strong> ${ticket.fullname}</div>
-                <div style="margin:8px 0"><strong>Khu vực:</strong> ${ticket.sectorName}</div>
-                <div style="margin:8px 0"><strong>Ghế:</strong> ${ticket.seats.join(', ')}</div>
-                <div style="margin:8px 0"><strong>Tổng tiền:</strong> ${ticket.totalAmount.toLocaleString()} VND</div>
-                <button onclick="window.location.href='./ticket.html?id=${ticket.ticketId}'" style="margin-top:15px; background:#00c9ff; color:#000; padding:10px 25px; border:none; border-radius:40px; cursor:pointer; font-weight:bold;">🎟️ Xem vé chi tiết</button>
-            </div>
-        `;
     }
+    
+    resultDiv.innerHTML = `<div class='result-card' style='color:#ff9999;'>❌ Không tìm thấy vé! Mã "${id}" không tồn tại.</div>`;
+}
 
+function displayTicketResult(ticket) {
+    const resultDiv = document.getElementById('result');
+    resultDiv.innerHTML = `
+        <div class="result-card">
+            <div style="color:#00ff88; margin-bottom:10px;"><i class="fas fa-check-circle"></i> TÌM THẤY VÉ</div>
+            <div><strong>Mã vé:</strong> ${ticket.ticketId}</div>
+            <div><strong>Người đặt:</strong> ${ticket.fullname}</div>
+            <div><strong>Sự kiện:</strong> ${ticket.eventName || 'Super Concert'}</div>
+            <div><strong>Khu vực:</strong> ${ticket.sectorName}</div>
+            <div><strong>Ghế:</strong> ${ticket.seats.join(', ')}</div>
+            <div><strong>Tổng tiền:</strong> ${(ticket.totalAmount || 0).toLocaleString()} VND</div>
+            <button onclick="window.location.href='ticket.html?id=${ticket.ticketId}'" style="margin-top:15px; background:#00c9ff; color:#000; padding:10px 25px; border:none; border-radius:40px; cursor:pointer; font-weight:bold;">🎟️ Xem vé chi tiết</button>
+        </div>
+    `;
+}
     async function viewAllTickets() {
         const resultDiv = document.getElementById('result');
         const user = JSON.parse(localStorage.getItem('current_user'));
@@ -1188,6 +1223,7 @@
         document.getElementById(sectionId).scrollIntoView({ behavior: 'smooth' });
     }
 
+    // ========== QUAN TRỌNG: HÀM CHUYỂN SANG STADIUM ==========
     function goToStadium(eventName) {
         const user = JSON.parse(localStorage.getItem('current_user'));
         if (!user) {
@@ -1197,7 +1233,10 @@
         }
         // Lưu tên sự kiện vào localStorage
         localStorage.setItem('selectedEvent', eventName);
-        window.location.href = './stadium.html';
+        localStorage.setItem('eventId', eventName);  // 'SonTung', 'RapViet', 'EDM'
+        
+        // Chuyển sang stadium.html kèm tham số event
+        window.location.href = `./stadium.html?event=${eventName}`;
     }
 
     checkLoginStatus();

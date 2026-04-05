@@ -6,7 +6,6 @@
     <title>Vé điện tử - Super Arena</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * {
             margin: 0;
@@ -25,6 +24,22 @@
         .container {
             max-width: 800px;
             margin: 0 auto;
+        }
+
+        .event-header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        .event-header h2 {
+            font-family: 'Orbitron';
+            font-size: 1.3rem;
+            color: #ffcf00;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(10px);
+            display: inline-block;
+            padding: 8px 25px;
+            border-radius: 40px;
+            border: 1px solid rgba(255, 207, 0, 0.3);
         }
 
         .ticket-card {
@@ -106,6 +121,7 @@
             flex-wrap: wrap;
             gap: 8px;
             margin-top: 5px;
+            justify-content: flex-end;
         }
 
         .seat-badge {
@@ -190,6 +206,13 @@
             font-size: 1.2rem;
             color: #00f2ff;
         }
+
+        .error-box {
+            text-align: center;
+            padding: 40px;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 28px;
+        }
     </style>
 </head>
 <body>
@@ -199,97 +222,33 @@
 </div>
 
 <script>
-    // ========== SUPABASE ==========
-    const supabaseUrl = 'https://ncpoptivxdkdvpotexfe.supabase.co';
-    const supabaseKey = 'sb_publishable_sL4M5eSOdVEsDsQEQ0iKQQ_m7gVLZ_-';
-    const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
-    console.log('✅ Supabase đã kết nối');
-
-    // ========== LẤY MÃ VÉ TỪ URL ==========
+    // Lấy mã vé từ URL
     const urlParams = new URLSearchParams(window.location.search);
     let ticketId = urlParams.get('id');
     
+    // Nếu không có trong URL, lấy từ localStorage
     if (!ticketId) {
-        const lastTicketId = localStorage.getItem('lastTicketId');
-        if (lastTicketId) {
-            ticketId = lastTicketId;
-        } else {
-            document.getElementById('ticketContainer').innerHTML = `
-                <div class="ticket-card">
-                    <div class="ticket-header">
-                        <h1>⚠️ KHÔNG TÌM THẤY VÉ</h1>
-                    </div>
-                    <div class="ticket-body" style="text-align:center; padding:40px;">
-                        <p>Không có mã vé để hiển thị.</p>
-                        <button class="btn btn-home" onclick="window.location.href='./index.html'" style="margin-top:20px;">🏠 Về trang chủ</button>
-                    </div>
-                </div>
-            `;
-        }
+        ticketId = localStorage.getItem('lastTicketId');
     }
     
-    if (ticketId) {
-        renderTicket(ticketId);
+    // Lấy danh sách vé từ localStorage
+    const allTickets = JSON.parse(localStorage.getItem('all_tickets')) || [];
+    const ticket = allTickets.find(t => t.ticketId === ticketId);
+    
+    if (ticket) {
+        displayTicket(ticket);
+    } else {
+        showError('Không tìm thấy vé!');
     }
     
-    async function renderTicket(id) {
-        // ========== ƯU TIÊN ĐỌC TỪ SUPABASE ==========
-        let ticket = null;
-        
-        try {
-            const { data, error } = await supabaseClient
-                .from('bookings')
-                .select('*')
-                .eq('ticket_id', id)
-                .single();
-            
-            if (!error && data) {
-                // Chuyển đổi dữ liệu từ Supabase sang format giống localStorage
-                ticket = {
-                    ticketId: data.ticket_id,
-                    sectorId: data.sector_id,
-                    sectorName: data.sector_name,
-                    seats: data.seats || [],
-                    seatsNumber: data.seats_number || [],
-                    fullname: data.fullname,
-                    email: data.email,
-                    phone: data.phone,
-                    totalAmount: data.total_amount,
-                    bookingTime: data.booking_time,
-                    eventName: data.event_name || 'Super Concert 2026',
-                    idNumber: data.id_number || 'Chưa cập nhật'
-                };
-                console.log('✅ Đọc vé từ Supabase thành công');
-            }
-        } catch (err) {
-            console.warn('Lỗi đọc từ Supabase, fallback sang localStorage:', err);
-        }
-        
-        // ========== FALLBACK: ĐỌC TỪ LOCALSTORAGE ==========
-        if (!ticket) {
-            const allTickets = JSON.parse(localStorage.getItem('all_tickets')) || [];
-            ticket = allTickets.find(t => t.ticketId === id);
-        }
-        
-        if (!ticket) {
-            document.getElementById('ticketContainer').innerHTML = `
-                <div class="ticket-card">
-                    <div class="ticket-header">
-                        <h1>⚠️ KHÔNG TÌM THẤY VÉ</h1>
-                    </div>
-                    <div class="ticket-body" style="text-align:center; padding:40px;">
-                        <p>Mã vé <strong>${id}</strong> không tồn tại trong hệ thống.</p>
-                        <button class="btn btn-home" onclick="window.location.href='./index.html'" style="margin-top:20px;">🏠 Về trang chủ</button>
-                    </div>
-                </div>
-            `;
-            return;
-        }
-        
+    function displayTicket(ticket) {
         const bookingDate = new Date(ticket.bookingTime);
         const formattedDate = bookingDate.toLocaleString('vi-VN');
         
         const html = `
+            <div class="event-header">
+                <h2><i class="fas fa-calendar-alt"></i> ${ticket.eventName || 'Super Concert 2026'}</h2>
+            </div>
             <div class="ticket-card" id="ticketContent">
                 <div class="ticket-header">
                     <h1>⚡ SUPER ARENA</h1>
@@ -312,7 +271,7 @@
                     <div class="info-row">
                         <span class="info-label">🪑 GHẾ ĐÃ ĐẶT</span>
                         <div class="seats-list">
-                            ${(ticket.seats || []).map(s => `<span class="seat-badge">${s}</span>`).join('')}
+                            ${ticket.seats.map(s => `<span class="seat-badge">${s}</span>`).join('')}
                         </div>
                     </div>
                     <div class="info-row">
@@ -321,11 +280,11 @@
                     </div>
                     <div class="info-row">
                         <span class="info-label">📧 EMAIL</span>
-                        <span class="info-value">${ticket.email || 'Chưa cập nhật'}</span>
+                        <span class="info-value">${ticket.email}</span>
                     </div>
                     <div class="info-row">
                         <span class="info-label">📞 SỐ ĐIỆN THOẠI</span>
-                        <span class="info-value">${ticket.phone || 'Chưa cập nhật'}</span>
+                        <span class="info-value">${ticket.phone}</span>
                     </div>
                     <div class="info-row">
                         <span class="info-label">⏰ THỜI GIAN ĐẶT</span>
@@ -344,7 +303,7 @@
             </div>
             <div class="button-group">
                 <button class="btn btn-pdf" id="downloadPdfBtn">📄 TẢI PDF VÉ</button>
-                <button class="btn btn-home" onclick="window.location.href='./index.html'">🏠 QUAY VỀ TRANG CHỦ</button>
+                <button class="btn btn-home" id="homeBtn">🏠 QUAY VỀ TRANG CHỦ</button>
             </div>
             <div class="footer-note">
                 * Vui lòng xuất trình vé này (bản giấy hoặc điện tử) khi vào cổng.<br>
@@ -367,21 +326,33 @@
             });
         }
         
-        // Sự kiện tải PDF
-        const downloadBtn = document.getElementById('downloadPdfBtn');
-        if (downloadBtn) {
-            downloadBtn.addEventListener('click', () => {
-                const element = document.getElementById('ticketContent');
-                const opt = {
-                    margin: [0.5, 0.5, 0.5, 0.5],
-                    filename: `Ve_SuperArena_${ticket.ticketId}.pdf`,
-                    image: { type: 'jpeg', quality: 0.98 },
-                    html2canvas: { scale: 2, backgroundColor: '#1a1a2e' },
-                    jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
-                };
-                html2pdf().set(opt).from(element).save();
-            });
-        }
+        // Nút tải PDF
+        document.getElementById('downloadPdfBtn').addEventListener('click', () => {
+            const element = document.getElementById('ticketContent');
+            html2pdf().set({
+                margin: [0.5, 0.5, 0.5, 0.5],
+                filename: `Ve_SuperArena_${ticket.ticketId}.pdf`,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, backgroundColor: '#1a1a2e' },
+                jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+            }).from(element).save();
+        });
+        
+        // Nút về trang chủ
+        document.getElementById('homeBtn').addEventListener('click', () => {
+            window.location.href = 'index.html';
+        });
+    }
+    
+    function showError(message) {
+        document.getElementById('ticketContainer').innerHTML = `
+            <div class="error-box">
+                <div style="font-size: 3rem; margin-bottom: 15px;">❌</div>
+                <h2>KHÔNG TÌM THẤY VÉ</h2>
+                <p>${message}</p>
+                <button class="btn btn-home" onclick="window.location.href='index.html'" style="margin-top: 20px;">🏠 VỀ TRANG CHỦ</button>
+            </div>
+        `;
     }
 </script>
 </body>
