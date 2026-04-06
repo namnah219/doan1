@@ -6,6 +6,7 @@
     <title>Chọn ghế - Super Arena</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Montserrat:wght@200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -15,7 +16,8 @@
             min-height: 100vh;
             padding: 25px;
         }
-        .container { max-width: 1400px; margin: 0 auto; }
+        .container { max-width: 1400px; margin: 0 auto; position: relative; }
+        
         .header {
             display: flex;
             justify-content: space-between;
@@ -61,6 +63,17 @@
             font-size: 1rem;
             color: #ffcf00;
         }
+        .hold-timer {
+            background: rgba(0, 0, 0, 0.6);
+            border-radius: 50px;
+            padding: 6px 16px;
+            font-family: 'Orbitron';
+            font-size: 0.9rem;
+            color: #ff8800;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
         
         .info-grid {
             display: flex;
@@ -80,6 +93,7 @@
         }
         .info-card .label { font-size: 0.65rem; color: #00f2ff; letter-spacing: 2px; }
         .info-card .value { font-family: 'Orbitron'; font-size: 1.4rem; font-weight: 800; margin-top: 6px; }
+        
         .legend {
             display: flex;
             gap: 30px;
@@ -89,10 +103,11 @@
         }
         .legend-item { display: flex; align-items: center; gap: 10px; font-size: 0.8rem; }
         .legend-color { width: 24px; height: 24px; border-radius: 8px; }
-        .legend-color.available { background: #2a6b2a; box-shadow: 0 0 5px #2a6b2a; }
-        .legend-color.selected { background: #ffaa00; box-shadow: 0 0 5px #ffaa00; }
-        .legend-color.holding { background: #ff8800; box-shadow: 0 0 5px #ff8800; }
-        .legend-color.booked { background: #cc0000; box-shadow: 0 0 5px #cc0000; }
+        .legend-color.available { background: #2a6b2a; }
+        .legend-color.selected { background: #ffaa00; }
+        .legend-color.holding { background: #ff8800; }
+        .legend-color.booked { background: #cc0000; }
+        
         .batch-bar {
             display: flex;
             gap: 12px;
@@ -116,25 +131,16 @@
         .batch-btn.clear { border-color: #ff5555; color: #ff5555; }
         .batch-btn.clear:hover { background: #ff5555; color: #000; }
         
-        .hold-btn {
-            background: linear-gradient(90deg, #ff8800, #ffaa00);
-            border: none;
-            padding: 12px 25px;
-            border-radius: 50px;
-            color: #000;
-            font-family: 'Orbitron';
-            font-weight: 800;
-            font-size: 0.9rem;
-            cursor: pointer;
-            transition: 0.3s;
+        .main-layout {
+            display: flex;
+            gap: 25px;
+            position: relative;
         }
-        .hold-btn:hover { transform: scale(1.02); box-shadow: 0 0 20px rgba(255, 136, 0, 0.5); }
-        
         .seat-wrapper {
+            flex: 1;
             background: rgba(0, 0, 0, 0.4);
             border-radius: 24px;
             padding: 20px;
-            margin-bottom: 25px;
             border: 1px solid rgba(0, 242, 255, 0.2);
             overflow-x: auto;
         }
@@ -171,32 +177,52 @@
         .seat.selected { background: #ffaa00; box-shadow: 0 0 12px #ffaa00; transform: scale(1.02); }
         .seat.holding { background: #ff8800; cursor: not-allowed; opacity: 0.8; }
         .seat.booked { background: #cc0000; cursor: not-allowed; opacity: 0.6; }
-        .summary-bar {
-            background: linear-gradient(135deg, rgba(0, 242, 255, 0.1), rgba(255, 207, 0, 0.05));
-            border-radius: 24px;
-            padding: 18px 25px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 20px;
-            border: 1px solid rgba(0, 242, 255, 0.3);
-        }
-        .summary-info { display: flex; gap: 30px; flex-wrap: wrap; }
-        .summary-item { text-align: center; }
-        .summary-item .label { font-size: 0.7rem; color: #aaa; }
-        .summary-item .value { font-family: 'Orbitron'; font-size: 1.3rem; font-weight: 800; }
-        .total-price { font-family: 'Orbitron'; font-size: 1.8rem; font-weight: 900; color: #ffcf00; }
         
+        .right-sidebar {
+            width: 320px;
+            position: sticky;
+            top: 20px;
+            align-self: flex-start;
+        }
+        .action-card {
+            background: linear-gradient(135deg, rgba(0, 242, 255, 0.15), rgba(255, 207, 0, 0.08));
+            border-radius: 28px;
+            padding: 25px;
+            border: 1px solid rgba(0, 242, 255, 0.35);
+            backdrop-filter: blur(12px);
+            text-align: center;
+        }
+        .summary-item {
+            margin-bottom: 20px;
+        }
+        .summary-item .label {
+            font-size: 0.7rem;
+            color: #aaa;
+            letter-spacing: 2px;
+        }
+        .summary-item .value {
+            font-family: 'Orbitron';
+            font-size: 1.6rem;
+            font-weight: 800;
+            margin-top: 5px;
+        }
+        .total-price {
+            font-family: 'Orbitron';
+            font-size: 2rem;
+            font-weight: 900;
+            color: #ffcf00;
+            margin: 15px 0;
+        }
         .action-buttons {
             display: flex;
-            gap: 15px;
-            align-items: center;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 20px;
         }
-        .btn-confirm {
-            background: linear-gradient(90deg, #ff7a18, #ffb347);
+        .hold-btn {
+            background: linear-gradient(90deg, #ff8800, #ffaa00);
             border: none;
-            padding: 14px 35px;
+            padding: 14px;
             border-radius: 50px;
             color: #000;
             font-family: 'Orbitron';
@@ -204,8 +230,37 @@
             font-size: 1rem;
             cursor: pointer;
             transition: 0.3s;
+            width: 100%;
         }
-        .btn-confirm:hover { transform: scale(1.02); box-shadow: 0 0 25px rgba(255, 180, 70, 0.6); }
+        .hold-btn:hover { transform: scale(1.02); box-shadow: 0 0 20px rgba(255, 136, 0, 0.5); }
+        .release-hold-btn {
+            background: linear-gradient(90deg, #ff5555, #cc0000);
+            border: none;
+            padding: 14px;
+            border-radius: 50px;
+            color: white;
+            font-family: 'Orbitron';
+            font-weight: 800;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: 0.3s;
+            width: 100%;
+        }
+        .release-hold-btn:hover { transform: scale(1.02); box-shadow: 0 0 20px rgba(255, 85, 85, 0.5); }
+        .confirm-btn {
+            background: linear-gradient(90deg, #ff7a18, #ffb347);
+            border: none;
+            padding: 14px;
+            border-radius: 50px;
+            color: #000;
+            font-family: 'Orbitron';
+            font-weight: 800;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: 0.3s;
+            width: 100%;
+        }
+        .confirm-btn:hover { transform: scale(1.02); box-shadow: 0 0 25px rgba(255, 180, 70, 0.6); }
         
         .toast {
             position: fixed;
@@ -220,9 +275,13 @@
             animation: slideIn 0.4s ease;
         }
         @keyframes slideIn { from { opacity: 0; transform: translateX(100px); } to { opacity: 1; transform: translateX(0); } }
+        
         @media (max-width: 1000px) {
             .seat { width: 40px; height: 40px; font-size: 10px; }
             .row-label { width: 40px; font-size: 0.75rem; }
+            .main-layout { flex-direction: column; }
+            .right-sidebar { width: 100%; position: static; margin-top: 20px; }
+            .action-buttons { flex-direction: row; }
         }
     </style>
 </head>
@@ -239,6 +298,9 @@
         <div class="event-name">
             <i class="fas fa-calendar-alt"></i> <span id="eventNameDisplay">Đang tải...</span>
         </div>
+        <div id="holdTimer" class="hold-timer" style="display: none;">
+            <i class="fas fa-hourglass-half"></i> <span id="timerSeconds">180</span>s
+        </div>
     </div>
 
     <div class="info-grid">
@@ -251,7 +313,7 @@
     <div class="legend">
         <div class="legend-item"><div class="legend-color available"></div><span>Ghế trống</span></div>
         <div class="legend-item"><div class="legend-color selected"></div><span>Đang chọn</span></div>
-        <div class="legend-item"><div class="legend-color holding"></div><span>Đang giữ (1 phút)</span></div>
+        <div class="legend-item"><div class="legend-color holding"></div><span>Đang giữ (3 phút)</span></div>
         <div class="legend-item"><div class="legend-color booked"></div><span>Đã đặt</span></div>
     </div>
 
@@ -264,18 +326,27 @@
         <button class="batch-btn clear" id="clearBtn">🗑️ Bỏ chọn</button>
     </div>
 
-    <div class="seat-wrapper">
-        <div class="seat-grid" id="seatGrid"></div>
-    </div>
-
-    <div class="summary-bar">
-        <div class="summary-info">
-            <div class="summary-item"><div class="label">🪑 SỐ GHẾ CHỌN</div><div class="value" id="finalCount">0</div></div>
-            <div class="summary-item"><div class="label">💵 TẠM TÍNH</div><div class="value total-price" id="finalPrice">0 VND</div></div>
+    <div class="main-layout">
+        <div class="seat-wrapper">
+            <div class="seat-grid" id="seatGrid"></div>
         </div>
-        <div class="action-buttons">
-            <button class="hold-btn" id="holdBtn">⏱️ GIỮ CHỖ (1 PHÚT)</button>
-            <button class="btn-confirm" id="confirmBtn">✅ XÁC NHẬN ĐẶT VÉ</button>
+
+        <div class="right-sidebar">
+            <div class="action-card">
+                <div class="summary-item">
+                    <div class="label">🪑 SỐ GHẾ CHỌN</div>
+                    <div class="value" id="finalCount">0</div>
+                </div>
+                <div class="summary-item">
+                    <div class="label">💵 TẠM TÍNH</div>
+                    <div class="total-price" id="finalPrice">0 VND</div>
+                </div>
+                <div class="action-buttons">
+                    <button class="hold-btn" id="holdBtn"><i class="fas fa-clock"></i> GIỮ CHỖ (3 PHÚT)</button>
+                    <button class="release-hold-btn" id="releaseHoldBtn"><i class="fas fa-trash-alt"></i> BỎ GIỮ CHỖ</button>
+                    <button class="confirm-btn" id="confirmBtn"><i class="fas fa-check-circle"></i> XÁC NHẬN ĐẶT VÉ</button>
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -292,28 +363,16 @@
     const sectorId = urlParams.get('sector');
     let eventId = urlParams.get('event');
     
-    if (!eventId) {
-        eventId = localStorage.getItem('eventId');
-    }
+    if (!eventId) eventId = localStorage.getItem('eventId');
+    if (!sectorId || !eventId) { alert('Thiếu thông tin!'); window.location.href = 'stadium.html'; }
     
-    if (!sectorId || !eventId) {
-        alert('Thiếu thông tin! Quay lại sân vận động.');
-        window.location.href = 'stadium.html';
-    }
-    
-    // Map eventId
     const eventInfo = {
         'SonTung': { name: '🎤 Concert Sơn Tùng MTP', tableSeats: 'sontung_seats' },
         'RapViet': { name: '🎧 Rap Việt - Chung kết', tableSeats: 'rapviet_seats' },
         'EDM': { name: '🎵 EDM Festival 2026', tableSeats: 'edm_seats' }
     };
-    
     const event = eventInfo[eventId];
-    if (!event) {
-        alert('Sự kiện không hợp lệ!');
-        window.location.href = 'stadium.html';
-    }
-    
+    if (!event) { alert('Sự kiện không hợp lệ!'); window.location.href = 'stadium.html'; }
     document.getElementById('eventNameDisplay').innerText = event.name;
     
     const sectorsMeta = {
@@ -331,42 +390,28 @@
         'CSE': { name: '📍 CORNER SE', price: 600000, totalSeats: 500 },
         'VIP': { name: '💎 DIAMOND SUITE', price: 50000000, totalSeats: 100 }
     };
-    
     const meta = sectorsMeta[sectorId];
-    if (!meta) {
-        alert('Khu vực không hợp lệ!');
-        window.location.href = 'stadium.html';
-    }
-    
+    if (!meta) { alert('Khu vực không hợp lệ!'); window.location.href = 'stadium.html'; }
     document.getElementById('sectorName').innerText = meta.name;
     document.getElementById('priceDisplay').innerHTML = meta.price.toLocaleString() + ' VND';
     document.getElementById('totalSeats').innerText = meta.totalSeats.toLocaleString();
     
-    // ========== CẤU HÌNH ==========
     const COLS_PER_ROW = 16;
     const ROWS = Math.ceil(meta.totalSeats / COLS_PER_ROW);
     const rowLetters = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'];
-    
     function getSeatNumber(row, col) { return row * COLS_PER_ROW + col + 1; }
     function getSeatLabel(rowLetter, col) { return `${rowLetter}${col + 1}`; }
     
-    // ========== BIẾN ==========
-    let bookedSeats = [];
-    let holdingSeats = [];
-    let selectedSeats = [];
+    let bookedSeats = [], holdingSeats = [], selectedSeats = [];
+    let holdTimerInterval = null, holdExpireTime = null;
     let currentUser = JSON.parse(localStorage.getItem('current_user')) || null;
     let currentUserId = currentUser ? currentUser.id : null;
     
     // ========== ĐỌC GHẾ ==========
     async function loadSeats() {
         try {
-            const { data, error } = await supabaseClient
-                .from(event.tableSeats)
-                .select('seat_number, status')
-                .eq('sector_id', sectorId);
-            
+            const { data, error } = await supabaseClient.from(event.tableSeats).select('seat_number, status').eq('sector_id', sectorId);
             if (error) throw error;
-            
             bookedSeats = data.filter(s => s.status === 'booked').map(s => s.seat_number);
             
             const savedHolding = localStorage.getItem(`holding_${eventId}_${sectorId}`);
@@ -374,133 +419,118 @@
                 const holdingData = JSON.parse(savedHolding);
                 if (holdingData.expireTime > Date.now()) {
                     holdingSeats = holdingData.seats;
+                    holdExpireTime = holdingData.expireTime;
+                    startHoldTimerDisplay();
                 } else {
                     localStorage.removeItem(`holding_${eventId}_${sectorId}`);
                     holdingSeats = [];
                 }
-            } else {
-                holdingSeats = [];
-            }
+            } else { holdingSeats = []; }
             
             const available = meta.totalSeats - bookedSeats.length - holdingSeats.length;
             document.getElementById('availSeats').innerText = available.toLocaleString();
-            
             renderSeats();
-        } catch (err) {
-            console.error('Lỗi load ghế:', err);
-            showToast('⚠️ Không thể tải dữ liệu ghế!');
-        }
+        } catch (err) { console.error('Lỗi load ghế:', err); showToast('⚠️ Không thể tải dữ liệu ghế!'); }
     }
     
-    // ========== GIỮ CHỖ ==========
-    function holdSeats() {
-        if (selectedSeats.length === 0) {
-            showToast('⚠️ Vui lòng chọn ghế để giữ chỗ!');
-            return;
-        }
-        
-        const conflictHolding = selectedSeats.some(s => holdingSeats.includes(s));
-        const conflictBooked = selectedSeats.some(s => bookedSeats.includes(s));
-        
-        if (conflictHolding || conflictBooked) {
-            showToast('❌ Có ghế vừa bị người khác giữ hoặc đặt!');
-            selectedSeats = [];
-            updateSummary();
-            loadSeats();
-            return;
-        }
-        
-        holdingSeats = [...selectedSeats];
-        const expireTime = Date.now() + 60 * 1000;
-        
-        localStorage.setItem(`holding_${eventId}_${sectorId}`, JSON.stringify({
-            seats: holdingSeats,
-            expireTime: expireTime,
-            userId: currentUserId
-        }));
-        
-        selectedSeats = [];
-        updateSummary();
-        renderSeats();
-        showToast(`🟠 Đã giữ ${holdingSeats.length} ghế trong 1 phút!`);
-        
-        setTimeout(() => {
-            releaseHoldSeats();
-        }, 60000);
+    function startHoldTimerDisplay() {
+        const timerDiv = document.getElementById('holdTimer');
+        const timerSpan = document.getElementById('timerSeconds');
+        timerDiv.style.display = 'flex';
+        if (holdTimerInterval) clearInterval(holdTimerInterval);
+        holdTimerInterval = setInterval(() => {
+            if (!holdExpireTime) { clearInterval(holdTimerInterval); timerDiv.style.display = 'none'; return; }
+            const remaining = Math.max(0, Math.ceil((holdExpireTime - Date.now()) / 1000));
+            timerSpan.innerText = remaining;
+            if (remaining <= 0) { clearInterval(holdTimerInterval); timerDiv.style.display = 'none'; releaseHoldSeats(); }
+        }, 1000);
     }
     
     function releaseHoldSeats() {
         if (holdingSeats.length === 0) return;
         holdingSeats = [];
+        holdExpireTime = null;
         localStorage.removeItem(`holding_${eventId}_${sectorId}`);
+        if (holdTimerInterval) { clearInterval(holdTimerInterval); holdTimerInterval = null; }
+        document.getElementById('holdTimer').style.display = 'none';
         renderSeats();
         showToast('🟢 Hết thời gian giữ ghế! Ghế đã trống.');
     }
     
-    // ========== RENDER ==========
+    // ========== GIỮ CHỖ ==========
+    function holdSeats() {
+        if (selectedSeats.length === 0) { showToast('⚠️ Vui lòng chọn ghế để giữ chỗ!'); return; }
+        const conflict = selectedSeats.some(s => holdingSeats.includes(s) || bookedSeats.includes(s));
+        if (conflict) { showToast('❌ Có ghế vừa bị người khác giữ hoặc đặt!'); selectedSeats = []; updateSummary(); loadSeats(); return; }
+        
+        holdingSeats = [...selectedSeats];
+        const expireTime = Date.now() + 3 * 60 * 1000;
+        holdExpireTime = expireTime;
+        localStorage.setItem(`holding_${eventId}_${sectorId}`, JSON.stringify({ seats: holdingSeats, expireTime, userId: currentUserId }));
+        selectedSeats = [];
+        updateSummary();
+        renderSeats();
+        startHoldTimerDisplay();
+        showToast(`🟠 Đã giữ ${holdingSeats.length} ghế trong 3 phút!`);
+        setTimeout(() => releaseHoldSeats(), 180000);
+    }
+    
+    // ========== BỎ GIỮ CHỖ ==========
+    function releaseHold() {
+        if (holdingSeats.length === 0) {
+            showToast('⚠️ Không có ghế nào đang được giữ!');
+            return;
+        }
+        const count = holdingSeats.length;
+        holdingSeats = [];
+        holdExpireTime = null;
+        localStorage.removeItem(`holding_${eventId}_${sectorId}`);
+        if (holdTimerInterval) {
+            clearInterval(holdTimerInterval);
+            holdTimerInterval = null;
+        }
+        document.getElementById('holdTimer').style.display = 'none';
+        renderSeats();
+        showToast(`🟢 Đã bỏ giữ ${count} ghế!`);
+    }
+    
+    // ========== BỎ CHỌN (CHỈ XÓA GHẾ ĐANG CHỌN) - ĐÃ SỬA ==========
+    function clearSelected() {
+        console.log('clearSelected called, selectedSeats before:', selectedSeats.length);
+        selectedSeats = [];
+        updateSummary();
+        renderSeats();
+        showToast('🗑️ Đã bỏ chọn tất cả ghế đang chọn');
+    }
+    
     function renderSeats() {
         const grid = document.getElementById('seatGrid');
         grid.innerHTML = '';
-        
         for (let row = 0; row < ROWS; row++) {
-            const rowDiv = document.createElement('div');
-            rowDiv.className = 'seat-row';
-            
-            const rowLabel = document.createElement('div');
-            rowLabel.className = 'row-label';
-            rowLabel.innerText = rowLetters[row % rowLetters.length];
+            const rowDiv = document.createElement('div'); rowDiv.className = 'seat-row';
+            const rowLabel = document.createElement('div'); rowLabel.className = 'row-label'; rowLabel.innerText = rowLetters[row % rowLetters.length];
             rowDiv.appendChild(rowLabel);
-            
-            const seatsContainer = document.createElement('div');
-            seatsContainer.className = 'seats-container';
-            
+            const seatsContainer = document.createElement('div'); seatsContainer.className = 'seats-container';
             for (let col = 0; col < COLS_PER_ROW; col++) {
                 const seatNum = getSeatNumber(row, col);
                 if (seatNum > meta.totalSeats) break;
-                
-                const seatDiv = document.createElement('div');
-                seatDiv.className = 'seat';
-                
-                if (bookedSeats.includes(seatNum)) {
-                    seatDiv.classList.add('booked');
-                    seatDiv.innerText = '✖';
-                } else if (holdingSeats.includes(seatNum)) {
-                    seatDiv.classList.add('holding');
-                    seatDiv.innerText = '⏳';
-                } else if (selectedSeats.includes(seatNum)) {
-                    seatDiv.classList.add('selected');
-                    seatDiv.innerText = '✓';
-                } else {
-                    seatDiv.classList.add('available');
-                    seatDiv.innerText = getSeatLabel(rowLetters[row % rowLetters.length], col);
-                }
-                
+                const seatDiv = document.createElement('div'); seatDiv.className = 'seat';
+                if (bookedSeats.includes(seatNum)) { seatDiv.classList.add('booked'); seatDiv.innerText = '✖'; }
+                else if (holdingSeats.includes(seatNum)) { seatDiv.classList.add('holding'); seatDiv.innerText = '⏳'; }
+                else if (selectedSeats.includes(seatNum)) { seatDiv.classList.add('selected'); seatDiv.innerText = '✓'; }
+                else { seatDiv.classList.add('available'); seatDiv.innerText = getSeatLabel(rowLetters[row % rowLetters.length], col); }
                 seatDiv.onclick = (function(seatNumber) {
                     return function() {
-                        if (bookedSeats.includes(seatNumber)) {
-                            showToast('❌ Ghế đã được đặt!');
-                            return;
-                        }
-                        if (holdingSeats.includes(seatNumber)) {
-                            showToast('⏳ Ghế đang có người giữ!');
-                            return;
-                        }
-                        if (selectedSeats.includes(seatNumber)) {
-                            selectedSeats = selectedSeats.filter(s => s !== seatNumber);
-                            showToast(`🟡 Đã bỏ chọn ghế ${getSeatLabel(rowLetters[row % rowLetters.length], col)}`);
-                        } else {
-                            selectedSeats.push(seatNumber);
-                            showToast(`🟢 Đã chọn ghế ${getSeatLabel(rowLetters[row % rowLetters.length], col)}`);
-                        }
-                        updateSummary();
-                        renderSeats();
+                        if (bookedSeats.includes(seatNumber)) { showToast('❌ Ghế đã được đặt!'); return; }
+                        if (holdingSeats.includes(seatNumber)) { showToast('⏳ Ghế đang có người giữ!'); return; }
+                        if (selectedSeats.includes(seatNumber)) { selectedSeats = selectedSeats.filter(s => s !== seatNumber); }
+                        else { selectedSeats.push(seatNumber); }
+                        updateSummary(); renderSeats();
                     };
                 })(seatNum);
-                
                 seatsContainer.appendChild(seatDiv);
             }
-            rowDiv.appendChild(seatsContainer);
-            grid.appendChild(rowDiv);
+            rowDiv.appendChild(seatsContainer); grid.appendChild(rowDiv);
         }
     }
     
@@ -510,73 +540,33 @@
         document.getElementById('finalPrice').innerHTML = (selectedSeats.length * meta.price).toLocaleString() + ' VND';
     }
     
-    // ========== ĐẶT CỤM ==========
     async function selectBatch(batchSize) {
         await loadSeats();
-        
         let availableSeats = [];
         for (let i = 1; i <= meta.totalSeats; i++) {
-            if (!bookedSeats.includes(i) && !holdingSeats.includes(i) && !selectedSeats.includes(i)) {
-                availableSeats.push(i);
-            }
+            if (!bookedSeats.includes(i) && !holdingSeats.includes(i) && !selectedSeats.includes(i)) availableSeats.push(i);
         }
-        
-        if (availableSeats.length < batchSize) {
-            showToast(`❌ Không đủ ghế trống! Chỉ còn ${availableSeats.length} ghế.`);
-            return;
-        }
-        
-        availableSeats.sort((a, b) => a - b);
+        if (availableSeats.length < batchSize) { showToast(`❌ Không đủ ghế trống! Chỉ còn ${availableSeats.length} ghế.`); return; }
+        availableSeats.sort((a,b)=>a-b);
         let bestBatch = [];
-        
         for (let i = 0; i <= availableSeats.length - batchSize; i++) {
             let isConsecutive = true;
-            for (let j = 0; j < batchSize - 1; j++) {
-                if (availableSeats[i + j + 1] !== availableSeats[i + j] + 1) {
-                    isConsecutive = false;
-                    break;
-                }
-            }
-            if (isConsecutive) {
-                bestBatch = availableSeats.slice(i, i + batchSize);
-                break;
-            }
+            for (let j = 0; j < batchSize - 1; j++) { if (availableSeats[i + j + 1] !== availableSeats[i + j] + 1) { isConsecutive = false; break; } }
+            if (isConsecutive) { bestBatch = availableSeats.slice(i, i + batchSize); break; }
         }
-        
-        if (bestBatch.length === 0) {
-            showToast(`❌ Không tìm thấy cụm ${batchSize} ghế liền kề còn trống!`);
-            return;
-        }
-        
+        if (bestBatch.length === 0) { showToast(`❌ Không tìm thấy cụm ${batchSize} ghế liền kề còn trống!`); return; }
         selectedSeats.push(...bestBatch);
-        updateSummary();
-        renderSeats();
+        updateSummary(); renderSeats();
         showToast(`✅ Đã chọn cụm ${batchSize} ghế liền kề!`);
     }
     
-    // ========== ĐẶT VÉ (LƯU VÀO BẢNG TICKETS) ==========
+    // ========== ĐẶT VÉ ==========
     async function processBooking() {
-        if (!currentUser) {
-            showToast('⚠️ Vui lòng đăng nhập lại!');
-            window.location.href = 'index.html';
-            return false;
-        }
+        if (!currentUser) { showToast('⚠️ Vui lòng đăng nhập lại!'); window.location.href = 'index.html'; return false; }
+        if (selectedSeats.length === 0) { showToast('⚠️ Vui lòng chọn ghế!'); return false; }
         
-        if (selectedSeats.length === 0) {
-            showToast('⚠️ Vui lòng chọn ghế!');
-            return false;
-        }
-        
-        const conflictHolding = selectedSeats.some(s => holdingSeats.includes(s));
-        const conflictBooked = selectedSeats.some(s => bookedSeats.includes(s));
-        
-        if (conflictHolding || conflictBooked) {
-            showToast('❌ Có ghế vừa bị người khác giữ hoặc đặt!');
-            selectedSeats = [];
-            updateSummary();
-            await loadSeats();
-            return false;
-        }
+        const conflict = selectedSeats.some(s => holdingSeats.includes(s) || bookedSeats.includes(s));
+        if (conflict) { showToast('❌ Có ghế vừa bị người khác giữ hoặc đặt!'); selectedSeats = []; updateSummary(); await loadSeats(); return false; }
         
         const bookingCode = `TIX${Date.now()}${Math.floor(Math.random() * 10000)}`;
         const seatsLabel = selectedSeats.map(seatNum => {
@@ -585,73 +575,29 @@
             return `${rowLetters[rowIdx % rowLetters.length]}${colIdx + 1}`;
         });
         
-        // Cập nhật ghế thành booked
         for (const seatNum of selectedSeats) {
-            await supabaseClient
-                .from(event.tableSeats)
-                .update({ status: 'booked', booked_by: currentUserId, booked_at: new Date() })
-                .eq('sector_id', sectorId)
-                .eq('seat_number', seatNum)
-                .eq('status', 'available');
+            await supabaseClient.from(event.tableSeats).update({ status: 'booked', booked_by: currentUserId, booked_at: new Date() }).eq('sector_id', sectorId).eq('seat_number', seatNum);
         }
         
-        // LƯU VÀO BẢNG TICKETS DUY NHẤT
-// Xác định bảng bookings theo eventId
-let bookingsTable = '';
-if (eventId === 'SonTung') bookingsTable = 'sontung_bookings';
-else if (eventId === 'RapViet') bookingsTable = 'rapviet_bookings';
-else if (eventId === 'EDM') bookingsTable = 'edm_bookings';
-
-// Lưu vào đúng bảng
-const { error: ticketError } = await supabaseClient
-    .from(bookingsTable)
-    .insert([{
-        ticket_id: bookingCode,
-        user_id: currentUserId,
-        sector_id: sectorId,
-        sector_name: meta.name,
-        seats: seatsLabel,
-        seats_number: selectedSeats,
-        fullname: currentUser.fullname || currentUser.username,
-        email: currentUser.email || '',
-        phone: currentUser.phone || '',
-        total_amount: selectedSeats.length * meta.price,
-        event_name: event.name
-    }]);
-        if (ticketError) {
-            console.error('Lỗi lưu ticket:', ticketError);
-            showToast('⚠️ Lưu vé thất bại! ' + (ticketError.message || ''));
-            return false;
-        }
+        const { error: totalError } = await supabaseClient.from('total_bookings').insert([{
+            ticket_id: bookingCode, user_id: currentUserId, sector_id: sectorId, sector_name: meta.name,
+            seats: seatsLabel, seats_number: selectedSeats, fullname: currentUser.fullname, email: currentUser.email || '',
+            phone: currentUser.phone || '', total_amount: selectedSeats.length * meta.price,
+            event_name: event.name, conflict_mode: 'mutex', source_table: eventId.toLowerCase()
+        }]);
         
-        // Cập nhật total_bookings cho user
+        if (totalError) { console.error('Lỗi lưu total_bookings:', totalError); showToast('⚠️ Lưu vé thất bại!'); return false; }
+        
         const newTotal = (currentUser.total_bookings || 0) + 1;
-        await supabaseClient
-            .from('users')
-            .update({ total_bookings: newTotal })
-            .eq('id', currentUserId);
+        await supabaseClient.from('users').update({ total_bookings: newTotal }).eq('id', currentUserId);
         
-        // Lưu localStorage fallback
-        const ticketData = {
-            ticketId: bookingCode,
-            sectorId: sectorId,
-            sectorName: meta.name,
-            seats: seatsLabel,
-            seatsNumber: selectedSeats,
-            fullname: currentUser.fullname,
-            email: currentUser.email,
-            phone: currentUser.phone,
-            totalAmount: selectedSeats.length * meta.price,
-            bookingTime: new Date().toISOString(),
-            eventName: event.name
-        };
-        const allTickets = JSON.parse(localStorage.getItem('all_tickets')) || [];
+        const ticketData = { ticketId: bookingCode, sectorId, sectorName: meta.name, seats: seatsLabel, seatsNumber: selectedSeats, fullname: currentUser.fullname, email: currentUser.email, phone: currentUser.phone, totalAmount: selectedSeats.length * meta.price, bookingTime: new Date().toISOString(), eventName: event.name };
+        const allTickets = JSON.parse(localStorage.getItem('all_tickets') || []);
         allTickets.push(ticketData);
         localStorage.setItem('all_tickets', JSON.stringify(allTickets));
         localStorage.setItem('lastTicketId', bookingCode);
         
         releaseHoldSeats();
-        
         selectedSeats = [];
         updateSummary();
         await loadSeats();
@@ -665,54 +611,42 @@ const { error: ticketError } = await supabaseClient
     }
     
     // ========== SỰ KIỆN ==========
-    document.getElementById('confirmBtn').onclick = async () => {
-        await processBooking();
-    };
+    document.getElementById('confirmBtn').onclick = async () => { await processBooking(); };
+    document.getElementById('holdBtn').onclick = () => { holdSeats(); };
+    document.getElementById('releaseHoldBtn').onclick = () => { releaseHold(); };
     
-    document.getElementById('holdBtn').onclick = () => {
-        holdSeats();
-    };
-    
-    document.querySelectorAll('.batch-btn').forEach(btn => {
-        btn.onclick = async () => {
-            const batch = parseInt(btn.dataset.batch);
-            if (btn.id === 'clearBtn') {
-                selectedSeats = [];
-                updateSummary();
-                renderSeats();
-                showToast('🗑️ Đã bỏ chọn tất cả ghế');
-            } else if (!isNaN(batch)) {
-                await selectBatch(batch);
-            }
+    // Nút bỏ chọn - đảm bảo hoạt động
+    const clearBtn = document.getElementById('clearBtn');
+    if (clearBtn) {
+        clearBtn.onclick = () => {
+            console.log('Clear button clicked');
+            selectedSeats = [];
+            updateSummary();
+            renderSeats();
+            showToast('🗑️ Đã bỏ chọn tất cả ghế đang chọn');
         };
+    }
+    
+    // Batch buttons (trừ nút bỏ chọn)
+    document.querySelectorAll('.batch-btn').forEach(btn => {
+        if (btn.id !== 'clearBtn') {
+            btn.onclick = async () => {
+                const batch = parseInt(btn.dataset.batch);
+                if (!isNaN(batch)) { await selectBatch(batch); }
+            };
+        }
     });
     
     // ========== KHỞI TẠO ==========
     async function init() {
-        if (!currentUserId) {
-            showToast('⚠️ Vui lòng đăng nhập để đặt vé!');
-            setTimeout(() => {
-                window.location.href = 'index.html';
-            }, 1500);
-            return;
-        }
-        await loadSeats();
-        updateSummary();
-        showToast(`🎫 ${event.name} - Chọn ghế, có thể giữ chỗ 1 phút`);
+        if (!currentUserId) { showToast('⚠️ Vui lòng đăng nhập!'); setTimeout(() => { window.location.href = 'index.html'; }, 1500); return; }
+        await loadSeats(); updateSummary();
+        showToast(`🎫 ${event.name} - Chọn ghế, giữ chỗ 3 phút`);
     }
-    
     init();
     
-    function showToast(msg) {
-        let t = document.createElement('div');
-        t.className = 'toast';
-        t.innerText = msg;
-        document.body.appendChild(t);
-        setTimeout(() => t.remove(), 3000);
-    }
-    
-    const channel = new BroadcastChannel('arena_updates');
-    channel.onmessage = () => loadSeats();
+    function showToast(msg) { let t = document.createElement('div'); t.className = 'toast'; t.innerText = msg; document.body.appendChild(t); setTimeout(() => t.remove(), 3000); }
+    const channel = new BroadcastChannel('arena_updates'); channel.onmessage = () => loadSeats();
 </script>
 </body>
 </html>
