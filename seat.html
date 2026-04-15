@@ -17,7 +17,6 @@
             padding: 25px;
         }
         .container { max-width: 1400px; margin: 0 auto; position: relative; }
-        
         .header {
             display: flex;
             justify-content: space-between;
@@ -45,7 +44,6 @@
             background-clip: text;
             color: transparent;
         }
-        
         .event-bar {
             background: linear-gradient(135deg, rgba(0, 242, 255, 0.15), rgba(255, 207, 0, 0.08));
             border-radius: 60px;
@@ -74,7 +72,6 @@
             align-items: center;
             gap: 8px;
         }
-        
         .info-grid {
             display: flex;
             gap: 18px;
@@ -93,7 +90,6 @@
         }
         .info-card .label { font-size: 0.65rem; color: #00f2ff; letter-spacing: 2px; }
         .info-card .value { font-family: 'Orbitron'; font-size: 1.4rem; font-weight: 800; margin-top: 6px; }
-        
         .legend {
             display: flex;
             gap: 30px;
@@ -107,7 +103,6 @@
         .legend-color.selected { background: #ffaa00; }
         .legend-color.holding { background: #ff8800; }
         .legend-color.booked { background: #cc0000; }
-        
         .batch-bar {
             display: flex;
             gap: 12px;
@@ -130,7 +125,6 @@
         .batch-btn:hover { background: #00f2ff; color: #000; transform: scale(1.02); }
         .batch-btn.clear { border-color: #ff5555; color: #ff5555; }
         .batch-btn.clear:hover { background: #ff5555; color: #000; }
-        
         .main-layout {
             display: flex;
             gap: 25px;
@@ -177,7 +171,6 @@
         .seat.selected { background: #ffaa00; box-shadow: 0 0 12px #ffaa00; transform: scale(1.02); }
         .seat.holding { background: #ff8800; cursor: not-allowed; opacity: 0.8; }
         .seat.booked { background: #cc0000; cursor: not-allowed; opacity: 0.6; }
-        
         .right-sidebar {
             width: 320px;
             position: sticky;
@@ -192,33 +185,11 @@
             backdrop-filter: blur(12px);
             text-align: center;
         }
-        .summary-item {
-            margin-bottom: 20px;
-        }
-        .summary-item .label {
-            font-size: 0.7rem;
-            color: #aaa;
-            letter-spacing: 2px;
-        }
-        .summary-item .value {
-            font-family: 'Orbitron';
-            font-size: 1.6rem;
-            font-weight: 800;
-            margin-top: 5px;
-        }
-        .total-price {
-            font-family: 'Orbitron';
-            font-size: 2rem;
-            font-weight: 900;
-            color: #ffcf00;
-            margin: 15px 0;
-        }
-        .action-buttons {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            margin-top: 20px;
-        }
+        .summary-item { margin-bottom: 20px; }
+        .summary-item .label { font-size: 0.7rem; color: #aaa; letter-spacing: 2px; }
+        .summary-item .value { font-family: 'Orbitron'; font-size: 1.6rem; font-weight: 800; margin-top: 5px; }
+        .total-price { font-family: 'Orbitron'; font-size: 2rem; font-weight: 900; color: #ffcf00; margin: 15px 0; }
+        .action-buttons { display: flex; flex-direction: column; gap: 12px; margin-top: 20px; }
         .hold-btn {
             background: linear-gradient(90deg, #ff8800, #ffaa00);
             border: none;
@@ -229,10 +200,8 @@
             font-weight: 800;
             font-size: 1rem;
             cursor: pointer;
-            transition: 0.3s;
             width: 100%;
         }
-        .hold-btn:hover { transform: scale(1.02); box-shadow: 0 0 20px rgba(255, 136, 0, 0.5); }
         .release-hold-btn {
             background: linear-gradient(90deg, #ff5555, #cc0000);
             border: none;
@@ -243,10 +212,8 @@
             font-weight: 800;
             font-size: 1rem;
             cursor: pointer;
-            transition: 0.3s;
             width: 100%;
         }
-        .release-hold-btn:hover { transform: scale(1.02); box-shadow: 0 0 20px rgba(255, 85, 85, 0.5); }
         .confirm-btn {
             background: linear-gradient(90deg, #ff7a18, #ffb347);
             border: none;
@@ -257,11 +224,8 @@
             font-weight: 800;
             font-size: 1rem;
             cursor: pointer;
-            transition: 0.3s;
             width: 100%;
         }
-        .confirm-btn:hover { transform: scale(1.02); box-shadow: 0 0 25px rgba(255, 180, 70, 0.6); }
-        
         .toast {
             position: fixed;
             bottom: 30px;
@@ -275,7 +239,6 @@
             animation: slideIn 0.4s ease;
         }
         @keyframes slideIn { from { opacity: 0; transform: translateX(100px); } to { opacity: 1; transform: translateX(0); } }
-        
         @media (max-width: 1000px) {
             .seat { width: 40px; height: 40px; font-size: 10px; }
             .row-label { width: 40px; font-size: 0.75rem; }
@@ -352,9 +315,9 @@
 </div>
 
 <script>
-    // ========== SUPABASE ==========
-    const supabaseUrl = 'https://ncpoptivxdkdvpotexfe.supabase.co';
-    const supabaseKey = 'sb_publishable_sL4M5eSOdVEsDsQEQ0iKQQ_m7gVLZ_-';
+    // ========== SUPABASE - KEY MỚI ==========
+    const supabaseUrl = 'https://urnimogbgyiwyroqzbwu.supabase.co';
+    const supabaseKey = 'sb_publishable_xM6hOmIzir1yW8cpsFY2lg_bG2I8W98';
     const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
     console.log('✅ Supabase đã kết nối');
 
@@ -366,10 +329,11 @@
     if (!eventId) eventId = localStorage.getItem('eventId');
     if (!sectorId || !eventId) { alert('Thiếu thông tin!'); window.location.href = 'stadium.html'; }
     
+    // CHỈ CÒN eventKey, KHÔNG CÒN tableSeats
     const eventInfo = {
-        'SonTung': { name: '🎤 Concert Sơn Tùng MTP', tableSeats: 'sontung_seats' },
-        'RapViet': { name: '🎧 Rap Việt - Chung kết', tableSeats: 'rapviet_seats' },
-        'EDM': { name: '🎵 EDM Festival 2026', tableSeats: 'edm_seats' }
+        'SonTung': { name: '🎤 Concert Sơn Tùng MTP', eventKey: 'SonTung' },
+        'RapViet': { name: '🎧 Rap Việt - Chung kết', eventKey: 'RapViet' },
+        'EDM': { name: '🎵 EDM Festival 2026', eventKey: 'EDM' }
     };
     const event = eventInfo[eventId];
     if (!event) { alert('Sự kiện không hợp lệ!'); window.location.href = 'stadium.html'; }
@@ -407,10 +371,44 @@
     let currentUser = JSON.parse(localStorage.getItem('current_user')) || null;
     let currentUserId = currentUser ? currentUser.id : null;
     
-    // ========== ĐỌC GHẾ ==========
+    // ========== TỰ ĐỘNG TẠO DỮ LIỆU GHẾ NẾU CHƯA CÓ (DÙNG BẢNG seats TỔNG HỢP) ==========
+    async function ensureSeatsExist() {
+        const { count, error } = await supabaseClient
+            .from('seats')  // DÙNG 1 BẢNG seats DUY NHẤT
+            .select('*', { count: 'exact', head: true })
+            .eq('event_id', event.eventKey)
+            .eq('sector_id', sectorId);
+        if (error) throw error;
+        if (count === 0) {
+            console.log(`⚠️ Chưa có ghế cho ${sectorId}, đang tạo...`);
+            const seats = [];
+            for (let i = 1; i <= meta.totalSeats; i++) {
+                seats.push({
+                    event_id: event.eventKey,
+                    sector_id: sectorId,
+                    seat_number: i,
+                    status: 'available',
+                    booked_by: null,
+                    booked_at: null
+                });
+            }
+            const { error: insertError } = await supabaseClient
+                .from('seats')
+                .insert(seats);
+            if (insertError) throw insertError;
+            showToast(`✅ Đã khởi tạo ${meta.totalSeats} ghế cho khu ${sectorId}`);
+        }
+    }
+    
+    // ========== ĐỌC GHẾ (DÙNG BẢNG seats TỔNG HỢP) ==========
     async function loadSeats() {
         try {
-            const { data, error } = await supabaseClient.from(event.tableSeats).select('seat_number, status').eq('sector_id', sectorId);
+            await ensureSeatsExist();
+            const { data, error } = await supabaseClient
+                .from('seats')
+                .select('seat_number, status')
+                .eq('event_id', event.eventKey)
+                .eq('sector_id', sectorId);
             if (error) throw error;
             bookedSeats = data.filter(s => s.status === 'booked').map(s => s.seat_number);
             
@@ -457,7 +455,6 @@
         showToast('🟢 Hết thời gian giữ ghế! Ghế đã trống.');
     }
     
-    // ========== GIỮ CHỖ ==========
     function holdSeats() {
         if (selectedSeats.length === 0) { showToast('⚠️ Vui lòng chọn ghế để giữ chỗ!'); return; }
         const conflict = selectedSeats.some(s => holdingSeats.includes(s) || bookedSeats.includes(s));
@@ -475,28 +472,19 @@
         setTimeout(() => releaseHoldSeats(), 180000);
     }
     
-    // ========== BỎ GIỮ CHỖ ==========
     function releaseHold() {
-        if (holdingSeats.length === 0) {
-            showToast('⚠️ Không có ghế nào đang được giữ!');
-            return;
-        }
+        if (holdingSeats.length === 0) { showToast('⚠️ Không có ghế nào đang được giữ!'); return; }
         const count = holdingSeats.length;
         holdingSeats = [];
         holdExpireTime = null;
         localStorage.removeItem(`holding_${eventId}_${sectorId}`);
-        if (holdTimerInterval) {
-            clearInterval(holdTimerInterval);
-            holdTimerInterval = null;
-        }
+        if (holdTimerInterval) { clearInterval(holdTimerInterval); holdTimerInterval = null; }
         document.getElementById('holdTimer').style.display = 'none';
         renderSeats();
         showToast(`🟢 Đã bỏ giữ ${count} ghế!`);
     }
     
-    // ========== BỎ CHỌN (CHỈ XÓA GHẾ ĐANG CHỌN) - ĐÃ SỬA ==========
     function clearSelected() {
-        console.log('clearSelected called, selectedSeats before:', selectedSeats.length);
         selectedSeats = [];
         updateSummary();
         renderSeats();
@@ -560,7 +548,7 @@
         showToast(`✅ Đã chọn cụm ${batchSize} ghế liền kề!`);
     }
     
-    // ========== ĐẶT VÉ ==========
+    // ========== ĐẶT VÉ (DÙNG BẢNG seats TỔNG HỢP) ==========
     async function processBooking() {
         if (!currentUser) { showToast('⚠️ Vui lòng đăng nhập lại!'); window.location.href = 'index.html'; return false; }
         if (selectedSeats.length === 0) { showToast('⚠️ Vui lòng chọn ghế!'); return false; }
@@ -575,59 +563,112 @@
             return `${rowLetters[rowIdx % rowLetters.length]}${colIdx + 1}`;
         });
         
-        for (const seatNum of selectedSeats) {
-            await supabaseClient.from(event.tableSeats).update({ status: 'booked', booked_by: currentUserId, booked_at: new Date() }).eq('sector_id', sectorId).eq('seat_number', seatNum);
+        try {
+            // 1. Cập nhật trạng thái ghế (DÙNG BẢNG seats)
+            for (const seatNum of selectedSeats) {
+                const { error: updateError } = await supabaseClient
+                    .from('seats')
+                    .update({ status: 'booked', booked_by: currentUserId, booked_at: new Date() })
+                    .eq('event_id', event.eventKey)
+                    .eq('sector_id', sectorId)
+                    .eq('seat_number', seatNum);
+                if (updateError) throw new Error(`Lỗi cập nhật ghế ${seatNum}: ${updateError.message}`);
+            }
+            
+            // 2. Lưu vào bảng total_bookings
+            const { error: totalError } = await supabaseClient.from('total_bookings').insert([{
+                ticket_id: bookingCode,
+                user_id: currentUserId,
+                sector_id: sectorId,
+                sector_name: meta.name,
+                seats: seatsLabel,
+                seats_number: selectedSeats,
+                fullname: currentUser.fullname,
+                email: currentUser.email || '',
+                phone: currentUser.phone || '',
+                total_amount: selectedSeats.length * meta.price,
+                event_name: event.name,
+                conflict_mode: 'mutex',
+                source_table: eventId.toLowerCase(),
+                created_at: new Date()
+            }]);
+            if (totalError) throw new Error(`Lỗi total_bookings: ${totalError.message}`);
+            
+            // 3. Lưu vào bảng bookings riêng của sự kiện
+            const bookingTable = `${eventId.toLowerCase()}_bookings`;
+            const { error: eventBookingError } = await supabaseClient.from(bookingTable).insert([{
+                ticket_id: bookingCode,
+                user_id: currentUserId,
+                sector_id: sectorId,
+                sector_name: meta.name,
+                seats: seatsLabel,
+                seats_number: selectedSeats,
+                fullname: currentUser.fullname,
+                email: currentUser.email || '',
+                phone: currentUser.phone || '',
+                total_amount: selectedSeats.length * meta.price,
+                event_name: event.name,
+                booking_time: new Date()
+            }]);
+            if (eventBookingError) console.warn('Không lưu được vào bảng sự kiện:', eventBookingError);
+            
+            // 4. Cập nhật total_bookings cho user
+            const newTotal = (currentUser.total_bookings || 0) + 1;
+            const { error: userError } = await supabaseClient
+                .from('users')
+                .update({ total_bookings: newTotal })
+                .eq('id', currentUserId);
+            if (userError) console.warn('Không thể cập nhật total_bookings user:', userError);
+            
+            // 5. Lưu local ticket
+            const ticketData = {
+                ticketId: bookingCode,
+                sectorId,
+                sectorName: meta.name,
+                seats: seatsLabel,
+                seatsNumber: selectedSeats,
+                fullname: currentUser.fullname,
+                email: currentUser.email,
+                phone: currentUser.phone,
+                totalAmount: selectedSeats.length * meta.price,
+                bookingTime: new Date().toISOString(),
+                eventName: event.name
+            };
+            let allTickets = [];
+            try {
+                const stored = localStorage.getItem('all_tickets');
+                allTickets = stored ? JSON.parse(stored) : [];
+            } catch(e) { allTickets = []; }
+            allTickets.push(ticketData);
+            localStorage.setItem('all_tickets', JSON.stringify(allTickets));
+            localStorage.setItem('lastTicketId', bookingCode);
+            
+            // 6. Giải phóng giữ chỗ (nếu có)
+            releaseHoldSeats();
+            selectedSeats = [];
+            updateSummary();
+            await loadSeats();
+            
+            // 7. Gửi cập nhật realtime
+            const updateChannel = new BroadcastChannel('arena_updates');
+            updateChannel.postMessage({ type: 'seat_updated', sector: sectorId });
+            
+            showToast(`✅ Đặt thành công! Mã vé: ${bookingCode}`);
+            window.location.href = `ticket.html?id=${bookingCode}`;
+            return true;
+        } catch (err) {
+            console.error('Lỗi đặt vé:', err);
+            showToast(`❌ Đặt vé thất bại: ${err.message}`);
+            return false;
         }
-        
-        const { error: totalError } = await supabaseClient.from('total_bookings').insert([{
-            ticket_id: bookingCode, user_id: currentUserId, sector_id: sectorId, sector_name: meta.name,
-            seats: seatsLabel, seats_number: selectedSeats, fullname: currentUser.fullname, email: currentUser.email || '',
-            phone: currentUser.phone || '', total_amount: selectedSeats.length * meta.price,
-            event_name: event.name, conflict_mode: 'mutex', source_table: eventId.toLowerCase()
-        }]);
-        
-        if (totalError) { console.error('Lỗi lưu total_bookings:', totalError); showToast('⚠️ Lưu vé thất bại!'); return false; }
-        
-        const newTotal = (currentUser.total_bookings || 0) + 1;
-        await supabaseClient.from('users').update({ total_bookings: newTotal }).eq('id', currentUserId);
-        
-        const ticketData = { ticketId: bookingCode, sectorId, sectorName: meta.name, seats: seatsLabel, seatsNumber: selectedSeats, fullname: currentUser.fullname, email: currentUser.email, phone: currentUser.phone, totalAmount: selectedSeats.length * meta.price, bookingTime: new Date().toISOString(), eventName: event.name };
-        const allTickets = JSON.parse(localStorage.getItem('all_tickets') || []);
-        allTickets.push(ticketData);
-        localStorage.setItem('all_tickets', JSON.stringify(allTickets));
-        localStorage.setItem('lastTicketId', bookingCode);
-        
-        releaseHoldSeats();
-        selectedSeats = [];
-        updateSummary();
-        await loadSeats();
-        
-        const updateChannel = new BroadcastChannel('arena_updates');
-        updateChannel.postMessage({ type: 'seat_updated', sector: sectorId });
-        
-        showToast(`✅ Đặt thành công! Mã vé: ${bookingCode}`);
-        window.location.href = `ticket.html?id=${bookingCode}`;
-        return true;
     }
     
     // ========== SỰ KIỆN ==========
     document.getElementById('confirmBtn').onclick = async () => { await processBooking(); };
     document.getElementById('holdBtn').onclick = () => { holdSeats(); };
     document.getElementById('releaseHoldBtn').onclick = () => { releaseHold(); };
+    document.getElementById('clearBtn').onclick = () => { clearSelected(); };
     
-    // Nút bỏ chọn - đảm bảo hoạt động
-    const clearBtn = document.getElementById('clearBtn');
-    if (clearBtn) {
-        clearBtn.onclick = () => {
-            console.log('Clear button clicked');
-            selectedSeats = [];
-            updateSummary();
-            renderSeats();
-            showToast('🗑️ Đã bỏ chọn tất cả ghế đang chọn');
-        };
-    }
-    
-    // Batch buttons (trừ nút bỏ chọn)
     document.querySelectorAll('.batch-btn').forEach(btn => {
         if (btn.id !== 'clearBtn') {
             btn.onclick = async () => {
@@ -640,7 +681,8 @@
     // ========== KHỞI TẠO ==========
     async function init() {
         if (!currentUserId) { showToast('⚠️ Vui lòng đăng nhập!'); setTimeout(() => { window.location.href = 'index.html'; }, 1500); return; }
-        await loadSeats(); updateSummary();
+        await loadSeats();
+        updateSummary();
         showToast(`🎫 ${event.name} - Chọn ghế, giữ chỗ 3 phút`);
     }
     init();

@@ -124,7 +124,6 @@
         @keyframes gradientShift { 0%{background-position:0% 50%;} 50%{background-position:100% 50%;} 100%{background-position:0% 50%;} }
         .logo-sub { font-size: 0.75rem; color: #aaa; margin-top: 10px; letter-spacing: 2px; }
         
-        /* Event title */
         .event-title {
             background: linear-gradient(135deg, rgba(0, 242, 255, 0.2), rgba(255, 207, 0, 0.1));
             border-radius: 40px;
@@ -381,7 +380,6 @@
     <div class="info-panel">
         <a href="./index.html" class="back-home-btn">← Quay lại trang chủ</a>
         
-        <!-- HIỂN THỊ TÊN SỰ KIỆN -->
         <div class="event-title" id="eventTitle">
             <span>🎫 SỰ KIỆN</span>
             <h3 id="eventNameDisplay">Đang tải...</h3>
@@ -431,20 +429,25 @@
 </div>
 
 <script>
-    // ========== LẤY EVENT ID TỪ URL ==========
+    // ========== SUPABASE - KEY MỚI ==========
+    const supabaseUrl = 'https://urnimogbgyiwyroqzbwu.supabase.co';
+    const supabaseKey = 'sb_publishable_xM6hOmIzir1yW8cpsFY2lg_bG2I8W98';
+    const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
+    console.log('✅ Supabase đã kết nối');
+
+    // ========== LẤY EVENT ID ==========
     const urlParams = new URLSearchParams(window.location.search);
     let eventId = urlParams.get('event');
     
-    // Nếu không có trong URL, thử đọc từ localStorage
     if (!eventId) {
         eventId = localStorage.getItem('eventId');
     }
     
-    // Map eventId sang tên hiển thị và tên bảng
+    // Map eventId - CHỈ CÒN eventId, KHÔNG CÒN tableSeats riêng
     const eventInfo = {
-        'SonTung': { name: '🎤 Concert Sơn Tùng MTP', tableSeats: 'sontung_seats', tableBookings: 'sontung_bookings' },
-        'RapViet': { name: '🎧 Rap Việt - Chung kết', tableSeats: 'rapviet_seats', tableBookings: 'rapviet_bookings' },
-        'EDM': { name: '🎵 EDM Festival 2026', tableSeats: 'edm_seats', tableBookings: 'edm_bookings' }
+        'SonTung': { name: '🎤 Concert Sơn Tùng MTP', eventKey: 'SonTung' },
+        'RapViet': { name: '🎧 Rap Việt - Chung kết', eventKey: 'RapViet' },
+        'EDM': { name: '🎵 EDM Festival 2026', eventKey: 'EDM' }
     };
     
     if (!eventId || !eventInfo[eventId]) {
@@ -452,26 +455,14 @@
         window.location.href = './index.html';
     }
     
-    // Hiển thị tên sự kiện
     document.getElementById('eventNameDisplay').innerText = eventInfo[eventId].name;
-    
-    // Lưu lại eventId để dùng cho các file khác
     localStorage.setItem('eventId', eventId);
     localStorage.setItem('selectedEvent', eventId);
-    
-    // ========== SUPABASE ==========
-    const supabaseUrl = 'https://ncpoptivxdkdvpotexfe.supabase.co';
-    const supabaseKey = 'sb_publishable_sL4M5eSOdVEsDsQEQ0iKQQ_m7gVLZ_-';
-    const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
-    console.log('✅ Supabase đã kết nối');
 
     const sectors = document.querySelectorAll('.sector');
     let currentSectorId = 'A1';
-    
-    // Cache số ghế trống
     let seatCountCache = {};
 
-    // Lưu meta sectors
     const sectorsMeta = {};
     sectors.forEach(s => {
         sectorsMeta[s.id] = {
@@ -490,16 +481,17 @@
         setTimeout(() => t.remove(), 2500);
     }
 
+    // ========== ĐẾM GHẾ TRỐNG TỪ BẢNG seats TỔNG HỢP ==========
     async function getAvailableSeatsCount(sectorId, totalSeats) {
         if (seatCountCache[sectorId] && (Date.now() - seatCountCache[sectorId].timestamp < 10000)) {
             return seatCountCache[sectorId].count;
         }
         
         try {
-            // Đọc từ bảng seats của sự kiện hiện tại
             const { count, error } = await supabaseClient
-                .from(eventInfo[eventId].tableSeats)
+                .from('seats')  // DÙNG 1 BẢNG seats DUY NHẤT
                 .select('*', { count: 'exact', head: true })
+                .eq('event_id', eventInfo[eventId].eventKey)
                 .eq('sector_id', sectorId)
                 .eq('status', 'available');
             
@@ -552,7 +544,6 @@
         }
     }
     
-    // Sự kiện click chọn khán đài
     sectors.forEach(s => {
         s.addEventListener('click', (e) => {
             e.stopPropagation();
@@ -564,7 +555,6 @@
         });
     });
     
-    // Nút chọn ghế - chuyển sang seat.html kèm eventId và sectorId
     document.getElementById('selectBtn').onclick = () => {
         if (currentSectorId) {
             localStorage.setItem('selected_sector', currentSectorId);
@@ -574,13 +564,12 @@
         }
     };
     
-    // Khởi tạo mặc định
     setTimeout(() => {
         const defaultSector = document.getElementById('A1');
         if (defaultSector) defaultSector.click();
     }, 200);
     
-    // Xoay sân 3D
+    // Xoay 3D
     const container = document.getElementById('stadium3d');
     let isDown = false;
     let startX, startY;
@@ -613,7 +602,6 @@
     
     container.style.cursor = 'grab';
     
-    // Lắng nghe cập nhật từ seat.html (realtime)
     const channel = new BroadcastChannel('arena_updates');
     channel.onmessage = async (event) => {
         if (event.data.type === 'seat_updated') {

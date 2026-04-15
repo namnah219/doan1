@@ -4,8 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Vé điện tử - Super Arena</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Montserrat:wght@200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * {
             margin: 0;
@@ -104,6 +107,8 @@
             justify-content: space-between;
             padding: 12px 0;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            flex-wrap: wrap;
+            gap: 8px;
         }
 
         .info-label {
@@ -114,6 +119,7 @@
         .info-value {
             font-weight: 600;
             color: #fff;
+            text-align: right;
         }
 
         .seats-list {
@@ -213,15 +219,28 @@
             background: rgba(0, 0, 0, 0.5);
             border-radius: 28px;
         }
+
+        @media (max-width: 600px) {
+            .ticket-body { padding: 20px; }
+            .info-row { flex-direction: column; align-items: flex-start; }
+            .info-value { text-align: left; }
+            .seats-list { justify-content: flex-start; }
+        }
     </style>
 </head>
 <body>
 
 <div class="container" id="ticketContainer">
-    <div class="loading">⏳ Đang tải thông tin vé...</div>
+    <div class="loading"><i class="fas fa-spinner fa-pulse"></i> Đang tải thông tin vé...</div>
 </div>
 
 <script>
+    // ========== SUPABASE ==========
+    const supabaseUrl = 'https://urnimogbgyiwyroqzbwu.supabase.co';
+    const supabaseKey = 'sb_publishable_xM6hOmIzir1yW8cpsFY2lg_bG2I8W98';
+    const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
+    console.log('✅ Supabase đã kết nối');
+
     // Lấy mã vé từ URL
     const urlParams = new URLSearchParams(window.location.search);
     let ticketId = urlParams.get('id');
@@ -231,14 +250,82 @@
         ticketId = localStorage.getItem('lastTicketId');
     }
     
-    // Lấy danh sách vé từ localStorage
-    const allTickets = JSON.parse(localStorage.getItem('all_tickets')) || [];
-    const ticket = allTickets.find(t => t.ticketId === ticketId);
-    
-    if (ticket) {
-        displayTicket(ticket);
+    if (!ticketId) {
+        showError('Không có mã vé! Vui lòng kiểm tra lại đường dẫn.');
     } else {
-        showError('Không tìm thấy vé!');
+        loadTicketFromDatabase(ticketId);
+    }
+    
+    async function loadTicketFromDatabase(ticketId) {
+        try {
+            // 1. Tìm trong total_bookings trước
+            let { data: booking, error } = await supabaseClient
+                .from('total_bookings')
+                .select('*')
+                .eq('ticket_id', ticketId)
+                .single();
+            
+            if (!error && booking) {
+                const ticket = {
+                    ticketId: booking.ticket_id,
+                    sectorId: booking.sector_id,
+                    sectorName: booking.sector_name,
+                    seats: booking.seats || [],
+                    seatsNumber: booking.seats_number,
+                    fullname: booking.fullname,
+                    email: booking.email,
+                    phone: booking.phone,
+                    totalAmount: booking.total_amount,
+                    bookingTime: booking.created_at,
+                    eventName: booking.event_name
+                };
+                displayTicket(ticket);
+                return;
+            }
+            
+            // 2. Tìm trong các bảng bookings của sự kiện
+            const eventTables = ['sontung_bookings', 'rapviet_bookings', 'edm_bookings'];
+            for (const table of eventTables) {
+                const { data, error: tableError } = await supabaseClient
+                    .from(table)
+                    .select('*')
+                    .eq('ticket_id', ticketId)
+                    .single();
+                
+                if (!tableError && data) {
+                    const ticket = {
+                        ticketId: data.ticket_id,
+                        sectorId: data.sector_id,
+                        sectorName: data.sector_name,
+                        seats: data.seats || [],
+                        seatsNumber: data.seats_number,
+                        fullname: data.fullname,
+                        email: data.email,
+                        phone: data.phone,
+                        totalAmount: data.total_amount,
+                        bookingTime: data.booking_time,
+                        eventName: data.event_name
+                    };
+                    displayTicket(ticket);
+                    return;
+                }
+            }
+            
+            // 3. Fallback: tìm trong localStorage
+            const allTickets = JSON.parse(localStorage.getItem('all_tickets') || '[]');
+            const localTicket = allTickets.find(t => t.ticketId === ticketId);
+            
+            if (localTicket) {
+                displayTicket(localTicket);
+                return;
+            }
+            
+            showError(`Không tìm thấy vé với mã "${ticketId}"`);
+            
+        } catch (err) {
+            console.error('Lỗi tải vé:', err);
+            showError('Lỗi kết nối đến máy chủ!');
+        }
     }
     
     function displayTicket(ticket) {
@@ -261,87 +348,100 @@
                     </div>
                     
                     <div class="info-row">
-                        <span class="info-label">🎫 SỰ KIỆN</span>
+                        <span class="info-label"><i class="fas fa-music"></i> SỰ KIỆN</span>
                         <span class="info-value">${ticket.eventName || 'Super Concert 2026'}</span>
                     </div>
                     <div class="info-row">
-                        <span class="info-label">🏟️ KHU VỰC</span>
+                        <span class="info-label"><i class="fas fa-map-marker-alt"></i> KHU VỰC</span>
                         <span class="info-value">${ticket.sectorName} (${ticket.sectorId})</span>
                     </div>
                     <div class="info-row">
-                        <span class="info-label">🪑 GHẾ ĐÃ ĐẶT</span>
+                        <span class="info-label"><i class="fas fa-chair"></i> GHẾ ĐÃ ĐẶT</span>
                         <div class="seats-list">
-                            ${ticket.seats.map(s => `<span class="seat-badge">${s}</span>`).join('')}
+                            ${(ticket.seats || []).map(s => `<span class="seat-badge">${s}</span>`).join('')}
                         </div>
                     </div>
                     <div class="info-row">
-                        <span class="info-label">👤 HỌ TÊN</span>
+                        <span class="info-label"><i class="fas fa-user"></i> HỌ TÊN</span>
                         <span class="info-value">${ticket.fullname}</span>
                     </div>
                     <div class="info-row">
-                        <span class="info-label">📧 EMAIL</span>
-                        <span class="info-value">${ticket.email}</span>
+                        <span class="info-label"><i class="fas fa-envelope"></i> EMAIL</span>
+                        <span class="info-value">${ticket.email || 'Chưa cập nhật'}</span>
                     </div>
                     <div class="info-row">
-                        <span class="info-label">📞 SỐ ĐIỆN THOẠI</span>
-                        <span class="info-value">${ticket.phone}</span>
+                        <span class="info-label"><i class="fas fa-phone"></i> SỐ ĐIỆN THOẠI</span>
+                        <span class="info-value">${ticket.phone || 'Chưa cập nhật'}</span>
                     </div>
                     <div class="info-row">
-                        <span class="info-label">⏰ THỜI GIAN ĐẶT</span>
+                        <span class="info-label"><i class="fas fa-clock"></i> THỜI GIAN ĐẶT</span>
                         <span class="info-value">${formattedDate}</span>
                     </div>
                     <div class="info-row" style="border-bottom: none; margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.1);">
-                        <span class="info-label">💰 TỔNG TIỀN</span>
-                        <span class="info-value total-price">${ticket.totalAmount.toLocaleString()} VND</span>
+                        <span class="info-label"><i class="fas fa-money-bill-wave"></i> TỔNG TIỀN</span>
+                        <span class="info-value total-price">${(ticket.totalAmount || 0).toLocaleString()} VND</span>
                     </div>
                     
                     <div class="qr-section">
-                        <div class="qr-placeholder" id="qrCode"></div>
-                        <div style="margin-top: 12px; font-size: 0.7rem; color: #aaa;">Quét mã để xác thực vé</div>
+                        <div id="qrCode"></div>
+                        <div style="margin-top: 12px; font-size: 0.7rem; color: #aaa;">
+                            <i class="fas fa-qrcode"></i> Quét mã QR để xác thực vé
+                        </div>
                     </div>
                 </div>
             </div>
             <div class="button-group">
-                <button class="btn btn-pdf" id="downloadPdfBtn">📄 TẢI PDF VÉ</button>
-                <button class="btn btn-home" id="homeBtn">🏠 QUAY VỀ TRANG CHỦ</button>
+                <button class="btn btn-pdf" id="downloadPdfBtn"><i class="fas fa-file-pdf"></i> TẢI PDF VÉ</button>
+                <button class="btn btn-home" id="homeBtn"><i class="fas fa-home"></i> QUAY VỀ TRANG CHỦ</button>
             </div>
             <div class="footer-note">
-                * Vui lòng xuất trình vé này (bản giấy hoặc điện tử) khi vào cổng.<br>
-                * Vé chỉ có giá trị cho đúng suất diễn đã đăng ký.
+                <i class="fas fa-shield-alt"></i> * Vui lòng xuất trình vé này (bản giấy hoặc điện tử) khi vào cổng.<br>
+                <i class="fas fa-ticket-alt"></i> * Vé chỉ có giá trị cho đúng suất diễn đã đăng ký.
             </div>
         `;
         
         document.getElementById('ticketContainer').innerHTML = html;
         
-        // Tạo QR code
-        const qrContainer = document.getElementById('qrCode');
-        if (qrContainer) {
-            new QRCode(qrContainer, {
-                text: ticket.ticketId,
-                width: 120,
-                height: 120,
-                colorDark: "#000000",
-                colorLight: "#ffffff",
-                correctLevel: QRCode.CorrectLevel.H
+        // Tạo QR code (đợi DOM render xong)
+        setTimeout(() => {
+            const qrContainer = document.getElementById('qrCode');
+            if (qrContainer && typeof QRCode !== 'undefined') {
+                qrContainer.innerHTML = '';
+                new QRCode(qrContainer, {
+                    text: ticket.ticketId,
+                    width: 130,
+                    height: 130,
+                    colorDark: "#000000",
+                    colorLight: "#ffffff",
+                    correctLevel: QRCode.CorrectLevel.H
+                });
+            } else if (qrContainer) {
+                qrContainer.innerHTML = `<div style="width:130px;height:130px;background:#fff;border-radius:12px;display:flex;align-items:center;justify-content:center;color:#000;">${ticket.ticketId.substring(0,10)}</div>`;
+            }
+        }, 100);
+        
+        // Nút tải PDF
+        const pdfBtn = document.getElementById('downloadPdfBtn');
+        if (pdfBtn) {
+            pdfBtn.addEventListener('click', () => {
+                const element = document.getElementById('ticketContent');
+                html2pdf().set({
+                    margin: [0.5, 0.5, 0.5, 0.5],
+                    filename: `Ve_SuperArena_${ticket.ticketId}.pdf`,
+                    image: { type: 'jpeg', quality: 0.98 },
+                    html2canvas: { scale: 2, backgroundColor: '#1a1a2e' },
+                    jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+                }).from(element).save();
             });
         }
         
-        // Nút tải PDF
-        document.getElementById('downloadPdfBtn').addEventListener('click', () => {
-            const element = document.getElementById('ticketContent');
-            html2pdf().set({
-                margin: [0.5, 0.5, 0.5, 0.5],
-                filename: `Ve_SuperArena_${ticket.ticketId}.pdf`,
-                image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2, backgroundColor: '#1a1a2e' },
-                jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
-            }).from(element).save();
-        });
-        
         // Nút về trang chủ
-        document.getElementById('homeBtn').addEventListener('click', () => {
-            window.location.href = 'index.html';
-        });
+        const homeBtn = document.getElementById('homeBtn');
+        if (homeBtn) {
+            homeBtn.addEventListener('click', () => {
+                window.location.href = 'index.html';
+            });
+        }
     }
     
     function showError(message) {
@@ -350,7 +450,10 @@
                 <div style="font-size: 3rem; margin-bottom: 15px;">❌</div>
                 <h2>KHÔNG TÌM THẤY VÉ</h2>
                 <p>${message}</p>
-                <button class="btn btn-home" onclick="window.location.href='index.html'" style="margin-top: 20px;">🏠 VỀ TRANG CHỦ</button>
+                <p style="margin-top: 15px; font-size: 0.8rem; color: #aaa;">Vui lòng kiểm tra lại mã vé hoặc liên hệ hotline hỗ trợ.</p>
+                <button class="btn btn-home" onclick="window.location.href='index.html'" style="margin-top: 20px;">
+                    <i class="fas fa-home"></i> VỀ TRANG CHỦ
+                </button>
             </div>
         `;
     }

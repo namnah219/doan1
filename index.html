@@ -25,7 +25,6 @@
             position: relative;
         }
 
-        /* Animated gradient overlay */
         body::before {
             content: '';
             position: fixed;
@@ -44,7 +43,6 @@
             50% { opacity: 0.8; }
         }
 
-        /* Canvas 3D nền */
         #canvas3d {
             position: fixed;
             top: 0;
@@ -55,7 +53,6 @@
             pointer-events: none;
         }
 
-        /* Nội dung nằm trên canvas */
         .header, .hero, .events, .features, footer, .modal {
             position: relative;
             z-index: 10;
@@ -65,7 +62,6 @@
             scroll-behavior: smooth;
         }
 
-        /* Custom scrollbar */
         ::-webkit-scrollbar {
             width: 8px;
         }
@@ -78,7 +74,6 @@
             border-radius: 10px;
         }
 
-        /* ========== HEADER ========== */
         .header {
             background: rgba(0, 0, 0, 0.4);
             backdrop-filter: blur(20px);
@@ -92,7 +87,6 @@
             z-index: 100;
             flex-wrap: wrap;
             gap: 20px;
-            transition: all 0.3s;
         }
 
         .logo {
@@ -201,7 +195,6 @@
             box-shadow: 0 0 15px rgba(0, 201, 255, 0.4);
         }
 
-        /* ========== HERO ========== */
         .hero {
             text-align: center;
             padding: 100px 20px 80px;
@@ -228,7 +221,6 @@
             line-height: 1.6;
         }
 
-        /* ========== SEARCH ========== */
         .search-section {
             max-width: 650px;
             margin: 40px auto 0;
@@ -297,7 +289,6 @@
             border-color: #ffcf00;
         }
 
-        /* ========== SỰ KIỆN ========== */
         .events {
             padding: 80px 20px;
             text-align: center;
@@ -371,7 +362,6 @@
             transform: scale(1.02);
         }
 
-        /* ========== TÍNH NĂNG ========== */
         .features {
             padding: 80px 20px;
             text-align: center;
@@ -429,7 +419,6 @@
             color: #bbb;
         }
 
-        /* ========== MODAL ========== */
         .modal {
             display: none;
             position: fixed;
@@ -653,7 +642,6 @@
 </head>
 <body>
 
-<!-- Canvas 3D nền -->
 <canvas id="canvas3d"></canvas>
 
 <div class="header">
@@ -727,7 +715,6 @@
     <p style="margin-top: 10px;">🔒 Bảo mật tuyệt đối | Hỗ trợ 24/7 | 🎫 Hệ thống chính thức</p>
 </footer>
 
-<!-- MODAL ĐĂNG NHẬP -->
 <div id="loginModal" class="modal">
     <div class="modal-content">
         <h2>🔐 ĐĂNG NHẬP</h2>
@@ -746,7 +733,6 @@
     </div>
 </div>
 
-<!-- MODAL ĐĂNG KÝ -->
 <div id="registerModal" class="modal">
     <div class="modal-content">
         <h2>📝 ĐĂNG KÝ</h2>
@@ -774,6 +760,12 @@
 </div>
 
 <script>
+    // ========== SUPABASE - CẬP NHẬT KEY MỚI ==========
+    const supabaseUrl = 'https://urnimogbgyiwyroqzbwu.supabase.co';
+    const supabaseKey = 'sb_publishable_xM6hOmIzir1yW8cpsFY2lg_bG2I8W98';
+    const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
+    console.log('✅ Supabase đã kết nối với key mới');
+
     // ========== THREE.JS 3D BACKGROUND ==========
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
@@ -781,7 +773,6 @@
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(window.devicePixelRatio);
     
-    // Tạo các hạt sáng (particles)
     const particlesGeometry = new THREE.BufferGeometry();
     const particlesCount = 1500;
     const posArray = new Float32Array(particlesCount * 3);
@@ -791,7 +782,6 @@
         posArray[i*3] = (Math.random() - 0.5) * 200;
         posArray[i*3+1] = (Math.random() - 0.5) * 100;
         posArray[i*3+2] = (Math.random() - 0.5) * 50 - 20;
-        
         const isBlue = Math.random() > 0.6;
         colorArray[i*3] = isBlue ? 0 : 1;
         colorArray[i*3+1] = isBlue ? 0.9 : 0.7;
@@ -811,7 +801,6 @@
     
     const particlesMesh = new THREE.Points(particlesGeometry, particlesMaterial);
     scene.add(particlesMesh);
-    
     camera.position.z = 30;
     
     let mouseX = 0, mouseY = 0;
@@ -824,10 +813,8 @@
         requestAnimationFrame(animate);
         particlesMesh.rotation.y += 0.0003;
         particlesMesh.rotation.x += 0.0002;
-        
         particlesMesh.rotation.x += (mouseY * 0.01 - particlesMesh.rotation.x) * 0.05;
         particlesMesh.rotation.y += (mouseX * 0.01 - particlesMesh.rotation.y) * 0.05;
-        
         renderer.render(scene, camera);
     }
     animate();
@@ -846,13 +833,8 @@
         "max-glare": 0.2,
         scale: 1.02
     });
-    
-    // ========== SUPABASE ==========
-    const supabaseUrl = 'https://ncpoptivxdkdvpotexfe.supabase.co';
-    const supabaseKey = 'sb_publishable_sL4M5eSOdVEsDsQEQ0iKQQ_m7gVLZ_-';
-    const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
-    console.log('✅ Supabase đã kết nối');
 
+    // ========== HÀM XỬ LÝ ==========
     function checkLoginStatus() {
         const user = JSON.parse(localStorage.getItem('current_user'));
         if (user && user.username) {
@@ -1133,66 +1115,65 @@
     function switchToLogin() { closeModal('registerModal'); openLoginModal(); }
 
     async function searchTicket() {
-    const id = document.getElementById('searchID').value.trim();
-    const resultDiv = document.getElementById('result');
-    
-    if (id === "") {
-        resultDiv.innerHTML = "<div class='result-card' style='color:#ffd369;'>⚠️ Vui lòng nhập mã vé!</div>";
-        return;
-    }
-    
-    // Tìm trong localStorage trước
-    const allTickets = JSON.parse(localStorage.getItem('all_tickets')) || [];
-    let ticket = allTickets.find(t => t.ticketId === id);
-    
-    if (ticket) {
-        displayTicketResult(ticket);
-        return;
-    }
-    
-    // Tìm trong 3 bảng Supabase
-    const tables = ['sontung_bookings', 'rapviet_bookings', 'edm_bookings'];
-    
-    for (const table of tables) {
-        const { data, error } = await supabaseClient
-            .from(table)
-            .select('*')
-            .eq('ticket_id', id)
-            .single();
+        const id = document.getElementById('searchID').value.trim();
+        const resultDiv = document.getElementById('result');
         
-        if (!error && data) {
-            ticket = {
-                ticketId: data.ticket_id,
-                sectorName: data.sector_name,
-                seats: data.seats,
-                fullname: data.fullname,
-                totalAmount: data.total_amount,
-                bookingTime: data.booking_time,
-                eventName: data.event_name
-            };
+        if (id === "") {
+            resultDiv.innerHTML = "<div class='result-card' style='color:#ffd369;'>⚠️ Vui lòng nhập mã vé!</div>";
+            return;
+        }
+        
+        const allTickets = JSON.parse(localStorage.getItem('all_tickets')) || [];
+        let ticket = allTickets.find(t => t.ticketId === id);
+        
+        if (ticket) {
             displayTicketResult(ticket);
             return;
         }
+        
+        const tables = ['sontung_bookings', 'rapviet_bookings', 'edm_bookings'];
+        
+        for (const table of tables) {
+            const { data, error } = await supabaseClient
+                .from(table)
+                .select('*')
+                .eq('ticket_id', id)
+                .single();
+            
+            if (!error && data) {
+                ticket = {
+                    ticketId: data.ticket_id,
+                    sectorName: data.sector_name,
+                    seats: data.seats,
+                    fullname: data.fullname,
+                    totalAmount: data.total_amount,
+                    bookingTime: data.booking_time,
+                    eventName: data.event_name
+                };
+                displayTicketResult(ticket);
+                return;
+            }
+        }
+        
+        resultDiv.innerHTML = `<div class='result-card' style='color:#ff9999;'>❌ Không tìm thấy vé! Mã "${id}" không tồn tại.</div>`;
     }
-    
-    resultDiv.innerHTML = `<div class='result-card' style='color:#ff9999;'>❌ Không tìm thấy vé! Mã "${id}" không tồn tại.</div>`;
-}
 
-function displayTicketResult(ticket) {
-    const resultDiv = document.getElementById('result');
-    resultDiv.innerHTML = `
-        <div class="result-card">
-            <div style="color:#00ff88; margin-bottom:10px;"><i class="fas fa-check-circle"></i> TÌM THẤY VÉ</div>
-            <div><strong>Mã vé:</strong> ${ticket.ticketId}</div>
-            <div><strong>Người đặt:</strong> ${ticket.fullname}</div>
-            <div><strong>Sự kiện:</strong> ${ticket.eventName || 'Super Concert'}</div>
-            <div><strong>Khu vực:</strong> ${ticket.sectorName}</div>
-            <div><strong>Ghế:</strong> ${ticket.seats.join(', ')}</div>
-            <div><strong>Tổng tiền:</strong> ${(ticket.totalAmount || 0).toLocaleString()} VND</div>
-            <button onclick="window.location.href='ticket.html?id=${ticket.ticketId}'" style="margin-top:15px; background:#00c9ff; color:#000; padding:10px 25px; border:none; border-radius:40px; cursor:pointer; font-weight:bold;">🎟️ Xem vé chi tiết</button>
-        </div>
-    `;
-}
+    function displayTicketResult(ticket) {
+        const resultDiv = document.getElementById('result');
+        resultDiv.innerHTML = `
+            <div class="result-card">
+                <div style="color:#00ff88; margin-bottom:10px;"><i class="fas fa-check-circle"></i> TÌM THẤY VÉ</div>
+                <div><strong>Mã vé:</strong> ${ticket.ticketId}</div>
+                <div><strong>Người đặt:</strong> ${ticket.fullname}</div>
+                <div><strong>Sự kiện:</strong> ${ticket.eventName || 'Super Concert'}</div>
+                <div><strong>Khu vực:</strong> ${ticket.sectorName}</div>
+                <div><strong>Ghế:</strong> ${ticket.seats.join(', ')}</div>
+                <div><strong>Tổng tiền:</strong> ${(ticket.totalAmount || 0).toLocaleString()} VND</div>
+                <button onclick="window.location.href='ticket.html?id=${ticket.ticketId}'" style="margin-top:15px; background:#00c9ff; color:#000; padding:10px 25px; border:none; border-radius:40px; cursor:pointer; font-weight:bold;">🎟️ Xem vé chi tiết</button>
+            </div>
+        `;
+    }
+
     async function viewAllTickets() {
         const resultDiv = document.getElementById('result');
         const user = JSON.parse(localStorage.getItem('current_user'));
@@ -1223,7 +1204,6 @@ function displayTicketResult(ticket) {
         document.getElementById(sectionId).scrollIntoView({ behavior: 'smooth' });
     }
 
-    // ========== QUAN TRỌNG: HÀM CHUYỂN SANG STADIUM ==========
     function goToStadium(eventName) {
         const user = JSON.parse(localStorage.getItem('current_user'));
         if (!user) {
@@ -1231,11 +1211,8 @@ function displayTicketResult(ticket) {
             openLoginModal();
             return;
         }
-        // Lưu tên sự kiện vào localStorage
         localStorage.setItem('selectedEvent', eventName);
-        localStorage.setItem('eventId', eventName);  // 'SonTung', 'RapViet', 'EDM'
-        
-        // Chuyển sang stadium.html kèm tham số event
+        localStorage.setItem('eventId', eventName);
         window.location.href = `./stadium.html?event=${eventName}`;
     }
 
